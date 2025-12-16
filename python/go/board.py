@@ -1,3 +1,81 @@
+from collections import deque
+from rules import Rules
+
+
+class Move:
+    """
+    A class representing a move
+    """
+
+    def __init__(self, row=-1, col=-1, color=0) -> None:
+        """
+        Initialize the move
+
+        Args:
+            row (int, optional): the row of the move. Defaults to -1.
+            col (int, optional): the column of the move. Defaults to -1.
+            color (int, optional): the color of the move. Defaults to 0.
+        """
+        self.row = row
+        self.col = col
+        self.color = color
+
+    def set_position(self, position) -> None:
+        """
+        Set the position of the move
+
+        Args:
+            position (tuple): the position of the move
+
+        Raises:
+            ValueError: if the position is invalid
+        """
+        if not Rules.position_is_valid(position):
+            raise ValueError(f"Invalid position: {position}")
+        self.position = position
+
+    def set_color(self, color) -> None:
+        """
+        Set the color of the move
+
+        Args:
+            color (int): the color of the move
+
+        Raises:
+            ValueError: if the color is invalid
+        """
+        if not Rules.color_is_valid(color):
+            raise ValueError(f"Invalid color: {color}")
+        self.color = color
+
+    def get_position(self) -> tuple:
+        """
+        Get the position of the move
+
+        Returns:
+            tuple: the position of the move
+        """
+        return (self.row, self.col)
+
+    def get_color(self) -> int:
+        """
+        Get the color of the move
+
+        Returns:
+            int: the color of the move
+        """
+        return self.color
+
+    def __repr__(self):
+        """
+        Return a developer-friendly message
+
+        Returns:
+            str: a message that describes the move
+        """
+        return f"(({self.row}, {self.col}), {self.color})"
+
+
 class Board:
     """
     A class representing a Go board
@@ -16,33 +94,13 @@ class Board:
             size (int): the size of the board
         """
         self.size = size
-        self.state = [[0] * size for _ in range(size)]
+        self.state: list[list[Move]] = []
+        for row in range(size):
+            self.state.append([])
+            for col in range(size):
+                self.state[row].append(Move(row, col))
 
-    def is_valid_move(self, position) -> bool:
-        """
-        Check if the given position is a valid move
-
-        Args:
-            position (tuple): the position of the move
-
-        Returns:
-            bool: True if the position is a valid move, False otherwise
-        """
-        return 0 <= position[0] < self.size and 0 <= position[1] < self.size
-
-    def is_valid_color(self, color) -> bool:
-        """
-        Check if the given color is a valid color
-
-        Args:
-            color (int): the color of the move
-
-        Returns:
-            bool: True if the color is a valid color, False otherwise
-        """
-        return color in [-1, 1]
-
-    def get_move(self, position) -> int:
+    def get_move(self, position) -> Move:
         """
         Get the move at the given position
 
@@ -50,22 +108,23 @@ class Board:
             position (tuple): the position of the move
 
         Returns:
-            int: the color of the move at the given position
+            Move: the move at the given position
         """
-        if not self.is_valid_move(position):
+        if not Rules.position_is_valid(position):
             raise ValueError(f"Invalid position: {position}")
         return self.state[position[0]][position[1]]
 
-    def get_neighbors(self, position) -> list:
+    def get_neighbors(self, move: Move) -> list[Move]:
         """
         Get the neighbors of a given position
 
         Args:
-            position (tuple): the position of the move
+            move (Move): the move
 
         Returns:
-            set: a set of the neighbors of the given position
+            list: a list of the neighbors of the given position
         """
+        position = move.get_position()
         neighbors = []
         if position[0] - 1 >= 0:
             neighbors.append(self.get_move((position[0] - 1, position[1])))
@@ -77,36 +136,80 @@ class Board:
             neighbors.append(self.get_move((position[0], position[1] + 1)))
         return neighbors
 
-    def count_liberties(self, position) -> int:
+    def count_liberties(self, move: Move) -> int:
         """
-        Count the liberties of a given position
+        Iterative solution to count the liberties of a given position
 
         Args:
-            position (tuple): the position of the move
+            move (Move): the move
 
         Returns:
-            int: the amount of liberties of that position
+            int: the amount of liberties of that position, -1 if move is empty
         """
-        color = self.get_move(position)
+        color = move.get_color()
         if color == 0:
             return -1
-        neighbors = self.get_neighbors(position)
-        liberties = len(neighbors)
-        for neighbor in neighbors:
-            liberties -= int(neighbor != 0)
+
+        liberties = 0
+        queue = deque[Move]([move])
+        visited = set[Move]([move])
+        while len(queue) > 0:
+            queuedMove = queue.popleft()
+            neighbors = self.get_neighbors(queuedMove)
+            for neighbor in neighbors:
+                neighborColor = neighbor.get_color()
+                if neighborColor == color and neighbor not in visited:
+                    queue.append(neighbor)
+                elif neighborColor == 0 and neighbor not in visited:
+                    liberties += 1
+                visited.add(neighbor)
+
         return liberties
 
-    def check_captures(self, position) -> set:
+    def check_captures(self, move: Move) -> list:
         """
         Check if the given position is a capture
 
         Args:
-            position (tuple): the position of the move
+            move (Move): the move
 
         Returns:
-            set: a set of positions that are captured
+            list: a list of positions that are captured
         """
-        print(self.count_liberties(position))
+        captures = []
+        queue = deque[Move]([move])
+        visited = set[Move]([move])
+        while len(queue) > 0:
+            queuedMove = queue.popleft()
+            neighbors = self.get_neighbors(queuedMove)
+            for neighbor in neighbors:
+                if neighbor.get_color() == 0:
+                    continue
+                if neighbor.get_color() == move.get_color() and neighbor not in visited:
+                    queue.append(neighbor)
+                elif (
+                    neighbor.get_color() == move.get_color() * -1
+                    and neighbor not in visited
+                ):
+                    if self.count_liberties(neighbor) == 0:
+                        captures.append(neighbor)
+                        queue.append(neighbor)
+                visited.add(neighbor)
+        return captures
+
+    def move_is_valid(self, move: Move) -> bool:
+        """
+        Check if a given move is invalid
+
+        Args:
+            move (Move): the move
+
+        Returns:
+            bool: True if is invalid, False otherwise
+        """
+        if self.count_liberties(move) <= 0:
+            return False
+        return True
 
     def place_move(self, position, color) -> None:
         """
@@ -121,16 +224,21 @@ class Board:
             ValueError: if the color is invalid
             ValueError: if the position is already occupied
         """
-        if not self.is_valid_move(position):
+        if not Rules.position_is_valid(position):
             raise ValueError(f"Invalid position: {position}")
-        if not self.is_valid_color(color):
+        if not Rules.color_is_valid(color):
             raise ValueError(f"Invalid color: {color}")
-        if self.get_move(position) != 0:
-            raise ValueError(f"Cannot place move at {position}: already occupied")
-        self.state[position[0]][position[1]] = color
+
+        prev = self.state[position[0]][position[1]].get_position()
+        move: Move = self.state[position[0]][position[1]]
+        move.set_color(color)
+        if not self.move_is_valid(move):
+            move.set_color(prev)
+            raise ValueError(f"Illegal move: {position}")
 
         # Calculate captures
-        self.check_captures(position)
+        captures = self.check_captures(move)
+        print(f"Captures: {captures}")
 
     def print_board(self) -> None:
         """
@@ -138,7 +246,8 @@ class Board:
         """
         print()
         for row in self.state:
-            for cell in row:
-                print("W" if cell == 1 else "B" if cell == -1 else ".", end=" ")
+            for move in row:
+                color = move.get_color()
+                print("W" if color == 1 else "B" if color == -1 else ".", end=" ")
             print()
         print()
