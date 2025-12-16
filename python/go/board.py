@@ -1,3 +1,5 @@
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 from collections import deque
 from rules import Rules
 
@@ -238,16 +240,48 @@ class Board:
 
         # Calculate captures
         captures = self.check_captures(move)
-        print(f"Captures: {captures}")
+        print(captures)
+        for capture in captures:
+            row, col = capture.get_position()
+            self.state[row][col].set_color(0)
 
-    def print_board(self) -> None:
+    def show_board(self) -> None:
         """
-        Print the board
+        Display the board
         """
+
         print()
         for row in self.state:
             for move in row:
                 color = move.get_color()
-                print("W" if color == 1 else "B" if color == -1 else ".", end=" ")
+                print("B" if color == -1 else "W" if color == 1 else ".", end=" ")
             print()
         print()
+
+        fig = plt.figure(figsize=[9, 9])
+        fig.patch.set_facecolor((0.85, 0.64, 0.125))
+        ax = fig.add_subplot(111)
+        ax.set_axis_off()
+
+        for x in range(9):
+            ax.plot([x, x], [0, 8], "k")
+        for y in range(9):
+            ax.plot([0, 8], [y, y], "k")
+        ax.set_position([0, 0, 1, 1])
+
+        for row in self.state:
+            for move in row:
+                if move.get_color() == 0:
+                    continue
+                moveRow, moveCol = move.get_position()
+                color = "black" if move.get_color() == -1 else "white"
+
+                circle = patches.Circle(
+                    (moveCol, 9 - moveRow - 1), radius=0.3, color=color, zorder=3
+                )
+                ax.add_patch(circle)
+
+        ax.set_aspect("equal", adjustable="box")
+
+        plt.title("Go Board")
+        plt.show()

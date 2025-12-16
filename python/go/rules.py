@@ -38,4 +38,4 @@ class Rules:
         """
         if not isinstance(color, int):
             raise TypeError("Inappropriate color: color must be int")
-        return color in [-1, 1]
+        return color in [-1, 0, 1]
