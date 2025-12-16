@@ -119,7 +119,7 @@ def next_best_move(board, isMax) -> tuple:
         for j in range(3):
             if board[i][j] == "_":
                 board[i][j] = player_symbol
-                score = minimax(board, not isMax)
+                score = minimax(board, not isMax, -INFINITY, INFINITY)
                 if (isMax and score > best_score) or (not isMax and score < best_score):
                     best_score = score
                     best_coords = (i, j)
