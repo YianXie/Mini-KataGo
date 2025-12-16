@@ -96,11 +96,9 @@ class Board:
             size (int): the size of the board
         """
         self.size = size
-        self.state: list[list[Move]] = []
-        for row in range(size):
-            self.state.append([])
-            for col in range(size):
-                self.state[row].append(Move(row, col))
+        self.state: list[list[Move]] = [
+            [Move(row, col) for col in range(size)] for row in range(size)
+        ]
 
     def get_move(self, position) -> Move:
         """
@@ -231,16 +229,15 @@ class Board:
         if not Rules.color_is_valid(color):
             raise ValueError(f"Invalid color: {color}")
 
-        prev = self.state[position[0]][position[1]].get_position()
         move: Move = self.state[position[0]][position[1]]
+        prev_color = move.get_color()
         move.set_color(color)
         if not self.move_is_valid(move):
-            move.set_color(prev)
+            move.set_color(prev_color)
             raise ValueError(f"Illegal move: {position}")
 
         # Calculate captures
         captures = self.check_captures(move)
-        print(captures)
         for capture in captures:
             row, col = capture.get_position()
             self.state[row][col].set_color(0)

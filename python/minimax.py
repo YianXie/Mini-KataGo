@@ -26,51 +26,38 @@ def goal_test(board) -> int:
 
     # Check for row
     for row in range(3):
-        if board[row][0] == board[row][1] and board[row][1] == board[row][2]:
-            if board[row][0] == player:
-                return 1
-            elif board[row][0] == opponent:
-                return -1
+        if board[row][0] == board[row][1] == board[row][2] != "_":
+            return 1 if board[row][0] == player else -1
 
     # Check for column
     for col in range(3):
-        if board[0][col] == board[1][col] and board[1][col] == board[2][col]:
-            if board[0][col] == player:
-                return 1
-            elif board[0][col] == opponent:
-                return -1
+        if board[0][col] == board[1][col] == board[2][col] != "_":
+            return 1 if board[0][col] == player else -1
 
-    # Check for positive diagonals
-    if board[0][2] == board[1][1] and board[1][1] == board[2][0]:
-        if board[0][2] == player:
-            return 1
-        elif board[0][2] == opponent:
-            return -1
+    # Check for positive diagonal
+    if board[0][2] == board[1][1] == board[2][0] != "_":
+        return 1 if board[0][2] == player else -1
 
-    # Check for negative diagonals
-    if board[0][0] == board[1][1] and board[1][1] == board[2][2]:
-        if board[0][0] == player:
-            return 1
-        elif board[0][0] == opponent:
-            return -1
+    # Check for negative diagonal
+    if board[0][0] == board[1][1] == board[2][2] != "_":
+        return 1 if board[0][0] == player else -1
 
     return 0
 
 
 def board_is_full(board) -> bool:
-    for row in board:
-        for cell in row:
-            if cell == "_":
-                return False
-    return True
+    return all(cell != "_" for row in board for cell in row)
 
 
-def minimax(board, isMax) -> int:
+def minimax(board, isMax, alpha=-INFINITY, beta=INFINITY) -> int:
     """
-    A minimax function that returns the value for a given player
+    A minimax function with alpha-beta pruning that returns the value for a given player
 
     Args:
         board (list): a 2D array representing the game board
+        isMax (bool): True if maximizing player, False if minimizing
+        alpha (float): alpha value for pruning
+        beta (float): beta value for pruning
 
     Returns:
         int: a value representing the best outcome for the given player assume both plays optimally
@@ -86,22 +73,29 @@ def minimax(board, isMax) -> int:
         best = -INFINITY
         for i in range(3):
             for j in range(3):
-                # If the cell is empty, try it
                 if board[i][j] == "_":
                     board[i][j] = "x"
-                    best = max(best, minimax(board, not isMax))
+                    best = max(best, minimax(board, False, alpha, beta))
                     board[i][j] = "_"
+                    alpha = max(alpha, best)
+                    if beta <= alpha:
+                        break
+            if beta <= alpha:
+                break
         return best
-
     else:
         best = INFINITY
         for i in range(3):
             for j in range(3):
-                # If the cell is empty, try it
                 if board[i][j] == "_":
                     board[i][j] = "o"
-                    best = min(best, minimax(board, not isMax))
+                    best = min(best, minimax(board, True, alpha, beta))
                     board[i][j] = "_"
+                    beta = min(beta, best)
+                    if beta <= alpha:
+                        break
+            if beta <= alpha:
+                break
         return best
 
 
@@ -119,27 +113,18 @@ def next_best_move(board, isMax) -> tuple:
 
     best_score = -INFINITY if isMax else INFINITY
     best_coords = None
-    if isMax:
-        for i in range(3):
-            for j in range(3):
-                if board[i][j] == "_":
-                    board[i][j] = "x"
-                    score = minimax(board, not isMax)
-                    if score > best_score:
-                        best_score = score
-                        best_coords = (i, j)
-                    board[i][j] = "_"
-
-    else:
-        for i in range(3):
-            for j in range(3):
-                if board[i][j] == "_":
-                    board[i][j] = "o"
-                    score = minimax(board, not isMax)
-                    if score < best_score:
-                        best_score = score
-                        best_coords = (i, j)
-                    board[i][j] = "_"
+    player_symbol = "x" if isMax else "o"
+    
+    for i in range(3):
+        for j in range(3):
+            if board[i][j] == "_":
+                board[i][j] = player_symbol
+                score = minimax(board, not isMax)
+                if (isMax and score > best_score) or (not isMax and score < best_score):
+                    best_score = score
+                    best_coords = (i, j)
+                board[i][j] = "_"
+    
     return best_coords
 
 
