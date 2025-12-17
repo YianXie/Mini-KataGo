@@ -7,7 +7,7 @@ from sgfmill import sgf
 
 from player import Player
 
-with open("python/go/data/891007.sgf", "rb") as f:
+with open("python/go/data/test_territories.sgf", "rb") as f:
     game = sgf.Sgf_game.from_bytes(f.read())
 root_node = game.get_root()
 black_player = Player(root_node.get("PB"), -1)
@@ -22,4 +22,5 @@ for move in moves:
     color, row, col = move[0], move[1][0], move[1][1]
     board.place_move((row, col), -1 if color == "b" else 1)
 
+print(board.count_territories())
 board.show_board()

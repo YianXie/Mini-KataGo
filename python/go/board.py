@@ -238,6 +238,43 @@ class Board:
         Returns:
             tuple: a tuple containing the territories for both side in the format (black, white)
         """
+        visited = set[Move]()
+        black_territories = white_territories = 0
+        for row in self.state:
+            for move in row:
+                if move in visited:
+                    continue
+                if move.get_color() == 0:
+                    queue = deque[Move]([move])
+                    queue_visited = set[Move]([move])
+                    queued_neighbor_border_colors = set[int]()
+                    empty_moves = 1  # include the move itself
+                    while len(queue) > 0:
+                        queuedMove = queue.popleft()
+                        neighbors = self.get_neighbors(queuedMove)
+                        for neighbor in neighbors:
+                            if neighbor in queue_visited:
+                                continue
+                            if neighbor.get_color() != 0:
+                                queued_neighbor_border_colors.add(neighbor.get_color())
+                            else:
+                                empty_moves += 1
+                                queue.append(neighbor)
+                            queue_visited.add(neighbor)
+                    if (
+                        -1 in queued_neighbor_border_colors
+                        and 1 not in queued_neighbor_border_colors
+                    ):
+                        black_territories += empty_moves
+                    elif (
+                        -1 not in queued_neighbor_border_colors
+                        and 1 in queued_neighbor_border_colors
+                    ):
+                        white_territories += empty_moves
+                    visited.update(queue_visited)
+                visited.add(move)
+
+        return (black_territories, white_territories)
 
     def show_board(self) -> None:
         """
@@ -280,5 +317,4 @@ class Board:
 
         ax.set_aspect("equal", adjustable="box")
 
-        plt.title("Go Board")
         plt.show()
