@@ -4,13 +4,13 @@ class Rules:
     """
 
     @staticmethod
-    def position_is_valid(position, size=9) -> bool:
+    def position_is_valid(position: tuple[int], size=9) -> bool:
         """
         Check if the given position is valid
 
         Args:
             position (tuple): the position of the move
-            size (int, optional): the size of teh game board. Defaults to 9.
+            size (int, optional): the size of the game board. Defaults to 9.
 
         Raises:
             TypeError: if the position argument is not a tuple
@@ -19,11 +19,11 @@ class Rules:
             bool: True if the move is valid, False otherwise
         """
         if not isinstance(position, tuple):
-            raise TypeError("Inappropriate position: position must be tuple")
+            return False
         return 0 <= position[0] < size and 0 <= position[1] < size
 
     @staticmethod
-    def color_is_valid(color) -> bool:
+    def color_is_valid(color: int) -> bool:
         """
         Check if the given color is a valid color
 
@@ -37,5 +37,11 @@ class Rules:
             bool: True if the color is a valid color, False otherwise
         """
         if not isinstance(color, int):
-            raise TypeError("Inappropriate color: color must be int")
+            return False
         return color in [-1, 0, 1]
+
+    @staticmethod
+    def player_name_is_valid(name: str) -> bool:
+        if not isinstance(name, str):
+            return False
+        return True

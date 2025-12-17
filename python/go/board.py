@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from collections import deque
+from player import Player
 from rules import Rules
 
 
@@ -88,19 +89,21 @@ class Board:
         1: White
     """
 
-    def __init__(self, size) -> None:
+    def __init__(self, size: int, black_player: Player, white_player: Player) -> None:
         """
         Initialize the board
 
         Args:
             size (int): the size of the board
         """
-        self.size = size
+        self.size: int = size
+        self.black_player: Player = black_player
+        self.white_player: Player = white_player
         self.state: list[list[Move]] = [
             [Move(row, col) for col in range(size)] for row in range(size)
         ]
 
-    def get_move(self, position) -> Move:
+    def get_move(self, position: tuple[int]) -> Move:
         """
         Get the move at the given position
 
@@ -197,21 +200,7 @@ class Board:
                 visited.add(neighbor)
         return captures
 
-    def move_is_valid(self, move: Move) -> bool:
-        """
-        Check if a given move is invalid
-
-        Args:
-            move (Move): the move
-
-        Returns:
-            bool: True if is invalid, False otherwise
-        """
-        if self.count_liberties(move) <= 0:
-            return False
-        return True
-
-    def place_move(self, position, color) -> None:
+    def place_move(self, position: tuple[int], color: int) -> None:
         """
         Place a move on the board
 
@@ -232,7 +221,7 @@ class Board:
         move: Move = self.state[position[0]][position[1]]
         prev_color = move.get_color()
         move.set_color(color)
-        if not self.move_is_valid(move):
+        if not Rules.position_is_valid(move.get_position()):
             move.set_color(prev_color)
             raise ValueError(f"Illegal move: {position}")
 
@@ -241,6 +230,14 @@ class Board:
         for capture in captures:
             row, col = capture.get_position()
             self.state[row][col].set_color(0)
+
+    def count_territories(self) -> tuple:
+        """
+        Estimate the territories for black and white player
+
+        Returns:
+            tuple: a tuple containing the territories for both side in the format (black, white)
+        """
 
     def show_board(self) -> None:
         """
@@ -260,10 +257,10 @@ class Board:
         ax = fig.add_subplot(111)
         ax.set_axis_off()
 
-        for x in range(9):
-            ax.plot([x, x], [0, 8], "k")
-        for y in range(9):
-            ax.plot([0, 8], [y, y], "k")
+        for x in range(self.size):
+            ax.plot([x, x], [0, self.size - 1], "k")
+        for y in range(self.size):
+            ax.plot([0, self.size - 1], [y, y], "k")
         ax.set_position([0, 0, 1, 1])
 
         for row in self.state:
@@ -274,7 +271,10 @@ class Board:
                 color = "black" if move.get_color() == -1 else "white"
 
                 circle = patches.Circle(
-                    (moveCol, 9 - moveRow - 1), radius=0.3, color=color, zorder=3
+                    (moveCol, self.size - moveRow - 1),
+                    radius=0.4,
+                    color=color,
+                    zorder=3,
                 )
                 ax.add_patch(circle)
 
