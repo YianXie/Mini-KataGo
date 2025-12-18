@@ -69,6 +69,15 @@ class Move:
         """
         return self.color
 
+    def is_empty(self) -> bool:
+        """
+        Check if a move is still empty
+
+        Returns:
+            bool: True if it is empty, False otherwise
+        """
+        return self.color == 0
+
     def __repr__(self):
         """
         Return a developer-friendly message
@@ -169,6 +178,20 @@ class Board:
 
         return liberties
 
+    def move_is_valid(self, move: Move) -> bool:
+        """
+        Check if a given move is valid
+
+        Args:
+            move (Move): the move to check
+
+        Returns:
+            bool: True if move is valid, False otherwise
+        """
+        if not self.check_captures(move) and self.count_liberties(move) <= 0:
+            return False
+        return True
+
     def check_captures(self, move: Move) -> list:
         """
         Check if the given position is a capture
@@ -186,7 +209,7 @@ class Board:
             queuedMove = queue.popleft()
             neighbors = self.get_neighbors(queuedMove)
             for neighbor in neighbors:
-                if neighbor.get_color() == 0:
+                if neighbor.is_empty():
                     continue
                 if neighbor.get_color() == move.get_color() and neighbor not in visited:
                     queue.append(neighbor)
@@ -217,13 +240,15 @@ class Board:
             raise ValueError(f"Invalid position: {position}")
         if not Rules.color_is_valid(color):
             raise ValueError(f"Invalid color: {color}")
+        if not self.get_move(position).is_empty():
+            raise ValueError(f"Position already occupied: {position}")
 
         move: Move = self.state[position[0]][position[1]]
         prev_color = move.get_color()
         move.set_color(color)
-        if not Rules.position_is_valid(move.get_position()):
+        if not self.move_is_valid(move):
             move.set_color(prev_color)
-            raise ValueError(f"Illegal move: {position}")
+            raise ValueError("Illegal move")
 
         # Calculate captures
         captures = self.check_captures(move)
@@ -244,7 +269,7 @@ class Board:
             for move in row:
                 if move in visited:
                     continue
-                if move.get_color() == 0:
+                if move.is_empty():
                     queue = deque[Move]([move])
                     queue_visited = set[Move]([move])
                     queued_neighbor_border_colors = set[int]()
@@ -255,7 +280,7 @@ class Board:
                         for neighbor in neighbors:
                             if neighbor in queue_visited:
                                 continue
-                            if neighbor.get_color() != 0:
+                            if not neighbor.is_empty():
                                 queued_neighbor_border_colors.add(neighbor.get_color())
                             else:
                                 empty_moves += 1
@@ -302,7 +327,7 @@ class Board:
 
         for row in self.state:
             for move in row:
-                if move.get_color() == 0:
+                if move.is_empty():
                     continue
                 moveRow, moveCol = move.get_position()
                 color = "black" if move.get_color() == -1 else "white"
