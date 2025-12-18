@@ -108,9 +108,20 @@ class Board:
         self.size: int = size
         self.black_player: Player = black_player
         self.white_player: Player = white_player
+        self.current_player: Player = black_player
         self.state: list[list[Move]] = [
             [Move(row, col) for col in range(size)] for row in range(size)
         ]
+        self.__can_play_ko = True
+
+    def get_current_player(self) -> Player:
+        """
+        Get the current playing player
+
+        Returns:
+            Player: the player that is currently playing
+        """
+        return self.current_player
 
     def get_move(self, position: tuple[int]) -> Move:
         """
@@ -128,7 +139,7 @@ class Board:
 
     def get_neighbors(self, move: Move) -> list[Move]:
         """
-        Get the neighbors of a given position
+        Get the neighbors of a given position (maximum 4, minimum 2)
 
         Args:
             move (Move): the move
@@ -147,6 +158,28 @@ class Board:
         if position[1] + 1 < self.size:
             neighbors.append(self.get_move((position[0], position[1] + 1)))
         return neighbors
+
+    def get_connected(self, move: Move) -> list[Move]:
+        """
+        Count how many moves are connected to the given move (including the given move)
+
+        Args:
+            move (Move): the move to start counting from
+
+        Returns:
+            list: a list of all the connected moves with the same color of the given move
+        """
+        queue = deque[Move]([move])
+        visited = set[Move]([move])
+        connected = list[Move]([move])
+        while queue:
+            queued_move = queue.popleft()
+            neighbors = self.get_neighbors(queued_move)
+            for neighbor in neighbors:
+                if neighbor not in visited and neighbor.get_color() == move.get_color():
+                    queue.append(neighbor)
+                    connected.append(neighbor)
+        return connected
 
     def count_liberties(self, move: Move) -> int:
         """
@@ -252,9 +285,26 @@ class Board:
 
         # Calculate captures
         captures = self.check_captures(move)
+        self.current_player.increase_capture_count(len(captures))
         for capture in captures:
             row, col = capture.get_position()
             self.state[row][col].set_color(0)
+
+        # Check for Ko
+        if (
+            len(captures) == 1
+            and len(self.get_connected(move)) == 1
+            and self.count_liberties(move) == 1
+        ):
+            self.__can_play_ko = False
+            print("Ko!")
+
+        # Switch the player
+        self.current_player = (
+            self.black_player
+            if self.current_player is self.white_player
+            else self.white_player
+        )
 
     def count_territories(self) -> tuple:
         """
@@ -305,15 +355,6 @@ class Board:
         """
         Display the board
         """
-
-        print()
-        for row in self.state:
-            for move in row:
-                color = move.get_color()
-                print("B" if color == -1 else "W" if color == 1 else ".", end=" ")
-            print()
-        print()
-
         fig = plt.figure(figsize=[9, 9])
         fig.patch.set_facecolor((0.85, 0.64, 0.125))
         ax = fig.add_subplot(111)
@@ -341,5 +382,4 @@ class Board:
                 ax.add_patch(circle)
 
         ax.set_aspect("equal", adjustable="box")
-
         plt.show()

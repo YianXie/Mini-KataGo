@@ -15,12 +15,20 @@ white_player = Player(root_node.get("PW"), 1)
 moves = [node.get_move() for node in game.get_main_sequence()]
 
 board = Board(9, black_player, white_player)
+color = -1
 
-for move in moves:
-    if None in move:
-        continue
-    color, row, col = move[0], move[1][0], move[1][1]
-    board.place_move((row, col), -1 if color == "b" else 1)
+while True:
+    row, col = map(int, input("Enter the position to play: ").split())
+    board.place_move((row, col), color)
+    color *= -1
 
-print(board.count_territories())
-board.show_board()
+    board.show_board()
+
+# for move in moves:
+#     if None in move:
+#         continue
+#     color, row, col = move[0], move[1][0], move[1][1]
+#     board.place_move((row, col), -1 if color == "b" else 1)
+
+# print(board.count_territories())
+# board.show_board()
