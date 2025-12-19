@@ -114,7 +114,7 @@ def next_best_move(board, isMax) -> tuple:
     best_score = -INFINITY if isMax else INFINITY
     best_coords = None
     player_symbol = "x" if isMax else "o"
-    
+
     for i in range(3):
         for j in range(3):
             if board[i][j] == "_":
@@ -124,7 +124,7 @@ def next_best_move(board, isMax) -> tuple:
                     best_score = score
                     best_coords = (i, j)
                 board[i][j] = "_"
-    
+
     return best_coords
 
 
@@ -144,19 +144,20 @@ def print_board(board) -> None:
     print()
 
 
-while True:
-    best_move = next_best_move(board, True)
-    board[best_move[0]][best_move[1]] = "x"
+if __name__ == "__main__":
+    while True:
+        best_move = next_best_move(board, True)
+        board[best_move[0]][best_move[1]] = "x"
 
-    print_board(board)
+        print_board(board)
 
-    if goal_test(board) != 0 or board_is_full(board):
-        break
+        if goal_test(board) != 0 or board_is_full(board):
+            break
 
-    row, col = map(int, input("Enter a coordinate: ").split())
-    board[row][col] = "o"
+        row, col = map(int, input("Enter a coordinate: ").split())
+        board[row][col] = "o"
 
-    print_board(board)
+        print_board(board)
 
-    if goal_test(board) != 0 or board_is_full(board):
-        break
+        if goal_test(board) != 0 or board_is_full(board):
+            break

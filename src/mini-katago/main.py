@@ -7,7 +7,7 @@ from sgfmill import sgf
 
 from player import Player
 
-with open("python/go/data/test_territories.sgf", "rb") as f:
+with open("src/mini-katago/data/test_territories.sgf", "rb") as f:
     game = sgf.Sgf_game.from_bytes(f.read())
 root_node = game.get_root()
 black_player = Player(root_node.get("PB"), -1)
