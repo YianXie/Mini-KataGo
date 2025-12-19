@@ -1,2 +1,37 @@
 # Mini-KataGo
-My own implementation of KataGo
+
+My own implementation of Go AI, similar to [KataGo](https://github.com/lightvector/KataGo).
+
+## Timeline
+
+### Week 1
+
+Implemented basic Go board engine and a simple minimax file for tac-tac-toe that will be later used for Go as a depth-limited MiniMax (and probably see it fails badly)
+
+Current feature includes:
+
+-   Place move at specific position with specific color
+-   Captures detection
+-   Ko detection
+-   Score estimation at the end of the game
+-   Illegal move detection
+-   Display a real Go board with MatPlotLib
+
+...
+
+## File structure
+
+```
+mini-katago/
+├── python/                     # All Python files
+│   ├── go/                     # Go related files
+│   │   │── board.py            # A file that represents the Go game board
+│   │   │── main.py             # A file for testing
+│   │   │── player.py           # A file representing the player
+│   │   │── rules.py            # A file that contains some basic rules for Go
+│   ├── minimax.py/             # A simple minimax algorithm for tic-tac-toe
+│   ├── requirements.txt        # Python dependencies required
+├── .gitignore
+├── LICENSE
+└── README.md
+```
