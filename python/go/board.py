@@ -112,7 +112,7 @@ class Board:
         self.state: list[list[Move]] = [
             [Move(row, col) for col in range(size)] for row in range(size)
         ]
-        self.__can_play_ko = True
+        self.__ko_positions: tuple[int, int] = None
 
     def get_current_player(self) -> Player:
         """
@@ -221,8 +221,14 @@ class Board:
         Returns:
             bool: True if move is valid, False otherwise
         """
+        # Prevent suicide
         if not self.check_captures(move) and self.count_liberties(move) <= 0:
             return False
+
+        # Prevent playing the Ko directly after
+        elif move.get_position() == self.__ko_positions:
+            return False
+
         return True
 
     def check_captures(self, move: Move) -> list:
@@ -283,8 +289,11 @@ class Board:
             move.set_color(prev_color)
             raise ValueError("Illegal move")
 
+        # Clear the previous Ko
+        self.__ko_positions = None
+
         # Calculate captures
-        captures = self.check_captures(move)
+        captures: list[Move] = self.check_captures(move)
         self.current_player.increase_capture_count(len(captures))
         for capture in captures:
             row, col = capture.get_position()
@@ -296,8 +305,9 @@ class Board:
             and len(self.get_connected(move)) == 1
             and self.count_liberties(move) == 1
         ):
-            self.__can_play_ko = False
-            print("Ko!")
+            self.__ko_positions = captures[0].get_position()
+
+        print(self.__ko_positions)
 
         # Switch the player
         self.current_player = (
@@ -350,6 +360,15 @@ class Board:
                 visited.add(move)
 
         return (black_territories, white_territories)
+
+    def print_ascii_board(self) -> None:
+        print()
+        for row in self.state:
+            for move in row:
+                color = move.get_color()
+                print("B" if color == -1 else "W" if color == 1 else ".", end=" ")
+            print()
+        print()
 
     def show_board(self) -> None:
         """

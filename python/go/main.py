@@ -17,11 +17,17 @@ moves = [node.get_move() for node in game.get_main_sequence()]
 board = Board(9, black_player, white_player)
 color = -1
 
-while True:
-    row, col = map(int, input("Enter the position to play: ").split())
-    board.place_move((row, col), color)
-    color *= -1
-
+try:
+    while True:
+        row, col = map(int, input("Enter the position to play: ").split())
+        if row == -1 or col == -1:
+            break
+        board.place_move((row, col), color)
+        color *= -1
+        board.print_ascii_board()
+except Exception as e:
+    print("Error:", e)
+finally:
     board.show_board()
 
 # for move in moves:
