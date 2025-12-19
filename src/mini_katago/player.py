@@ -1,4 +1,4 @@
-from rules import Rules
+from mini_katago.rules import Rules
 
 
 class Player:

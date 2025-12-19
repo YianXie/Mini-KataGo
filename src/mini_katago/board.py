@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from collections import deque
-from player import Player
-from rules import Rules
+from mini_katago.player import Player
+from mini_katago.rules import Rules
 
 
 class Move:
@@ -98,7 +98,12 @@ class Board:
         1: White
     """
 
-    def __init__(self, size: int, black_player: Player, white_player: Player) -> None:
+    def __init__(
+        self,
+        size: int,
+        black_player: Player = Player("Unknown", -1),
+        white_player: Player = Player("Unknown", 1),
+    ) -> None:
         """
         Initialize the board
 
