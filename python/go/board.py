@@ -233,35 +233,15 @@ class Board:
         return True
 
     def check_captures(self, move: Move) -> list:
-        """
-        Check if the given position is a capture
-
-        Args:
-            move (Move): the move
-
-        Returns:
-            list: a list of positions that are captured
-        """
         captures = []
-        queue = deque[Move]([move])
-        visited = set[Move]([move])
-        while len(queue) > 0:
-            queuedMove = queue.popleft()
-            neighbors = self.get_neighbors(queuedMove)
-            for neighbor in neighbors:
-                if neighbor.is_empty():
-                    continue
-                if neighbor.get_color() == move.get_color() and neighbor not in visited:
-                    queue.append(neighbor)
-                elif (
-                    neighbor.get_color() == move.get_color() * -1
-                    and neighbor not in visited
-                ):
-                    if self.count_liberties(neighbor) == 0:
-                        captures.append(neighbor)
-                        queue.append(neighbor)
-                visited.add(neighbor)
-        return captures
+        for neighbor in self.get_neighbors(move):
+            if neighbor.get_color() == move.get_color() * -1:
+                if self.count_liberties(neighbor) == 0:
+                    group = self.get_connected(neighbor)
+                    captures.extend(group)
+
+        # Ensure uniqueness
+        return list[Move](set[Move](captures))
 
     def place_move(self, position: tuple[int], color: int) -> None:
         """
@@ -307,8 +287,6 @@ class Board:
             and self.count_liberties(move) == 1
         ):
             self.__ko_positions = captures[0].get_position()
-
-        print(self.__ko_positions)
 
         # Switch the player
         self.current_player = (
