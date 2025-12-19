@@ -179,6 +179,7 @@ class Board:
                 if neighbor not in visited and neighbor.get_color() == move.get_color():
                     queue.append(neighbor)
                     connected.append(neighbor)
+                    visited.add(neighbor)
         return connected
 
     def count_liberties(self, move: Move) -> int:
