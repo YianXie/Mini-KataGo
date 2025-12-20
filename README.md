@@ -39,3 +39,40 @@ mini-katago/
 ├── LICENSE
 └── README.md
 ```
+
+## Development
+
+To start developing this project locally. Run the following command:
+
+```bash
+git clone https://github.com/YianXie/Mini-KataGo  # Clone this repository
+cd Mini-KataGo
+python -m venv venv  # Create a Python virtual environment
+source venv/bin/activate  # Activate the virtual environment
+which pip  # (optional) confirm that you are using the correct pip
+pip install -r requirements.txt  # Install dependencies
+```
+
+Now you are ready to start developing. To see a quick demo, you may go the `main.py` and try a few different .sgf files or play your own.
+
+Happy developing!
+
+## Tests
+
+This project contains some tests that you can run while developing to make sure everything works as expected.
+
+To run tests:
+
+```bash
+pip install -r requirements.txt  # Install dependencies
+```
+
+```bash
+pip install -e .  # IMPORTANT: run at root level, otherwise Pytest would not work
+```
+
+```bash
+pytest  # Run at root level. This would run all tests.
+```
+
+To add more tests, simply add a new Python file in the `tests/` directory. Note that it must start with `test_xxx` or `xxx_test`
