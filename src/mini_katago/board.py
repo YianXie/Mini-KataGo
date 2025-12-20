@@ -101,8 +101,8 @@ class Board:
     def __init__(
         self,
         size: int,
-        black_player: Player = Player("Unknown", -1),
-        white_player: Player = Player("Unknown", 1),
+        black_player: Player,
+        white_player: Player,
     ) -> None:
         """
         Initialize the board
