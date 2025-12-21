@@ -128,6 +128,24 @@ class Board:
         """
         return self.current_player
 
+    def get_black_player(self) -> Player:
+        """
+        Get the black player
+
+        Returns:
+            Player: the black player
+        """
+        return self.black_player
+
+    def get_white_player(self) -> Player:
+        """
+        Get the white player
+
+        Returns:
+            Player: the white player
+        """
+        return self.white_player
+
     def get_move(self, position: tuple[int]) -> Move:
         """
         Get the move at the given position
