@@ -8,7 +8,7 @@ My own implementation of Go AI, similar to [KataGo](https://github.com/lightvect
 
 Implemented basic Go board engine and a simple minimax file for tac-tac-toe that will be later used for Go as a depth-limited MiniMax (and probably see it fails badly)
 
-Current feature includes:
+New features include:
 
 -   Place move at specific position with specific color
 -   Captures detection
@@ -17,7 +17,11 @@ Current feature includes:
 -   Illegal move detection
 -   Display a real Go board with MatPlotLib
 
-...
+### Week 2
+
+Implemented a basic depth-limited MiniMax algorithm for Go. It checks all possible moves in a given board state and choose the local optimal one by choosing the move that captures the most opponent's stones.
+
+> No essential new features.
 
 ## File structure
 
@@ -30,7 +34,7 @@ mini-katago/
 │   │   │── main.py             # A file for testing
 │   │   │── player.py           # A file representing the player
 │   │   │── rules.py            # A file that contains some basic rules for Go
-│   │   │── minimax.py          # A simple minimax algorithm for tic-tac-toe
+│   │   │── minimax.py          # A simple depth-limited minimax algorithm for Go
 ├── tests/                      # All unit-tests
     ├── test_board_rules.py     # Test if board rules works correctly
 ├── requirements.txt
