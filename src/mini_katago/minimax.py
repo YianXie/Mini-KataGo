@@ -10,7 +10,7 @@ INFINITY = math.inf
 
 # Here, the min player is black, and the max player is white (MiniMax)
 min_player, max_player = Player("Max Player", -1), Player("Min Player", 1)
-board = Board(5, min_player, max_player)
+board = Board(7, min_player, max_player)
 
 
 def game_is_over(board: Board, player: Player) -> bool:
@@ -79,7 +79,7 @@ def get_legal_moves(board: Board, player: Player) -> list[Move]:
 
 def minimax(board: Board, depth: int, isMax: bool) -> int:
     """
-    A minimax function the value of a given player
+    A depth-limited minimax function the value of a given player
 
     Args:
         board (Board): the board to check
@@ -90,8 +90,6 @@ def minimax(board: Board, depth: int, isMax: bool) -> int:
         int: the score of the given player
     """
     if depth <= 0 or game_is_over(board, max_player if isMax else min_player):
-        # if evaluate(board) != 0:
-        #     print(evaluate(board), isMax)
         return evaluate(board)
 
     if isMax:
@@ -127,7 +125,6 @@ def next_best_move(board: Board, isMax: bool) -> Move:
     best_move = None
 
     for move in get_legal_moves(board, max_player if isMax else min_player):
-        # print(move)
         board_copy = copy.deepcopy(board)
         board_copy.place_move(
             move.get_position(),
@@ -141,15 +138,17 @@ def next_best_move(board: Board, isMax: bool) -> Move:
     return best_move
 
 
-while True:
-    row, col = map(int, input("Enter a position to place your move: ").split())
-    if row == -1 or col == -1:
-        break
-    board.place_move((row, col), min_player.get_color())
-    board.print_ascii_board()
+if __name__ == "__main__":
+    while True:
+        row, col = map(int, input("Enter a position to place your move: ").split())
+        if row == -1 or col == -1:
+            break
+        board.place_move((row, col), min_player.get_color())
+        board.print_ascii_board()
 
-    move = next_best_move(board, isMax=True)
-    board.place_move(move.get_position(), max_player.get_color())
-    board.print_ascii_board()
+        move = next_best_move(board, isMax=True)
+        if move is not None:
+            board.place_move(move.get_position(), max_player.get_color())
+            board.print_ascii_board()
 
-board.show_board()
+    board.show_board()
