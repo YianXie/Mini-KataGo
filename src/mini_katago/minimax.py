@@ -7,8 +7,10 @@ import math
 import copy
 
 INFINITY = math.inf
-player1, player2 = Player("Max Player", -1), Player("Min Player", 1)
-board = Board(9, player1, player2)
+
+# Here, the min player is black, and the max player is white (MiniMax)
+min_player, max_player = Player("Max Player", -1), Player("Min Player", 1)
+board = Board(5, min_player, max_player)
 
 
 def game_is_over(board: Board, player: Player) -> bool:
@@ -21,7 +23,7 @@ def game_is_over(board: Board, player: Player) -> bool:
     Returns:
         bool: True if the game is over, False otherwise
     """
-    for row in board:
+    for row in board.state:
         for move in row:
             if not move.is_empty():
                 continue
@@ -41,17 +43,15 @@ def evaluate(board: Board) -> int:
         board (Board): the game board
 
     Returns:
-        int: the score based on the evaluation
+        int: the score based on the evaluation (positive favors white, negative favors black)
     """
     black_captures, white_captures = (
         board.get_black_player().capture_count,
         board.get_white_player().capture_count,
     )
-    if black_captures > white_captures:
-        return 1
-    elif black_captures < black_captures:
-        return -1
-    return 0
+
+    # Return the difference: positive means white is ahead, negative means black is ahead
+    return white_captures - black_captures
 
 
 def get_legal_moves(board: Board, player: Player) -> list[Move]:
@@ -66,7 +66,7 @@ def get_legal_moves(board: Board, player: Player) -> list[Move]:
         list[Move]: all legal moves for the given player
     """
     moves: list[Move] = []
-    for row in board:
+    for row in board.state:
         for move in row:
             if not move.is_empty():
                 continue
@@ -89,22 +89,67 @@ def minimax(board: Board, depth: int, isMax: bool) -> int:
     Returns:
         int: the score of the given player
     """
-    if depth == 0 or game_is_over(board, player1 if isMax else player2):
+    if depth <= 0 or game_is_over(board, max_player if isMax else min_player):
+        # if evaluate(board) != 0:
+        #     print(evaluate(board), isMax)
         return evaluate(board)
 
     if isMax:
         best = -INFINITY
-        for move in get_legal_moves(board, player1):
+        for move in get_legal_moves(board, max_player):
             board_copy = copy.deepcopy(board)
-            board_copy.place_move(move.get_position(), move.get_color())
+            board_copy.place_move(move.get_position(), max_player.get_color())
             score = minimax(board_copy, depth - 1, False)
             best = max(best, score)
         return best
     else:
         best = INFINITY
-        for move in get_legal_moves(board, player2):
+        for move in get_legal_moves(board, min_player):
             board_copy = copy.deepcopy(board)
-            board_copy.place_move(move.get_position(), move.get_color())
+            board_copy.place_move(move.get_position(), min_player.get_color())
             score = minimax(board_copy, depth - 1, True)
             best = min(best, score)
         return best
+
+
+def next_best_move(board: Board, isMax: bool) -> Move:
+    """
+    Find the next best move for the given player
+
+    Args:
+        board (Board): the board to check
+        isMax (bool): if it is the max player's turn
+
+    Returns:
+        Move: the next best move for the given player
+    """
+    best_score = -INFINITY if isMax else INFINITY
+    best_move = None
+
+    for move in get_legal_moves(board, max_player if isMax else min_player):
+        # print(move)
+        board_copy = copy.deepcopy(board)
+        board_copy.place_move(
+            move.get_position(),
+            max_player.get_color() if isMax else min_player.get_color(),
+        )
+        score = minimax(board_copy, 2, not isMax)
+        if (isMax and score > best_score) or (not isMax and score < best_score):
+            best_score = score
+            best_move = move
+
+    return best_move
+
+
+while True:
+    row, col = map(int, input("Enter a position to place your move: ").split())
+    if row == -1 or col == -1:
+        break
+    board.place_move((row, col), min_player.get_color())
+    board.print_ascii_board()
+
+    move = next_best_move(board, isMax=True)
+    board.place_move(move.get_position(), max_player.get_color())
+    board.print_ascii_board()
+
+board.show_board()
