@@ -382,14 +382,6 @@ class Board:
             row, col = capture.get_position()
             self.state[row][col].set_color(0)
 
-        # Check for Ko
-        if (
-            len(captures) == 1
-            and len(self.get_connected(move)) == 1
-            and self.count_liberties(move) == 1
-        ):
-            self._ko_positions = captures[0].get_position()
-
         self._move_history.append(
             {
                 "type": "place",
@@ -402,6 +394,14 @@ class Board:
                 "previous_capture_count": previous_capture_count,
             }
         )
+
+        # Check for Ko
+        if (
+            len(captures) == 1
+            and len(self.get_connected(move)) == 1
+            and self.count_liberties(move) == 1
+        ):
+            self._ko_positions = captures[0].get_position()
 
         # Switch the player
         self.current_player = (
