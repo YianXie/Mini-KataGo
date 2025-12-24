@@ -19,9 +19,12 @@ New features include:
 
 ### Week 2
 
-Implemented a basic depth-limited MiniMax algorithm for Go. It checks all possible moves in a given board state and choose the local optimal one by choosing the move that captures the most opponent's stones.
+Implemented a basic depth-limited MiniMax algorithm for Go with alpha-beta pruning. It checks all possible moves in a given board state and choose the local optimal one by choosing the move that captures the most opponent's stones. Also did some minor updates to the board class.
 
-> No essential new features.
+New features include:
+
+-   Depth-limited Minimax algorithm with alpha-beta pruning
+-   Auto game-over when there are 2 consecutive passes
 
 ## File structure
 
