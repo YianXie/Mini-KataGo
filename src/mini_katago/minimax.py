@@ -10,7 +10,7 @@ INFINITY = math.inf
 
 # Here, the min player is black, and the max player is white (MiniMax)
 min_player, max_player = Player("Max Player", -1), Player("Min Player", 1)
-board = Board(7, min_player, max_player)
+board = Board(9, min_player, max_player)
 
 
 def game_is_over(board: Board, player: Player) -> bool:
@@ -77,7 +77,7 @@ def get_legal_moves(board: Board, player: Player) -> list[Move]:
     return moves
 
 
-def minimax(board: Board, depth: int, isMax: bool) -> int:
+def minimax(board: Board, depth: int, isMax: bool, alpha: int, beta: int) -> int:
     """
     A depth-limited minimax function the value of a given player
 
@@ -85,6 +85,8 @@ def minimax(board: Board, depth: int, isMax: bool) -> int:
         board (Board): the board to check
         depth (int): the depth of the minimax
         isMax (bool): if it is the max player's turn
+        alpha (int): the best value guaranteed for the max player
+        beta (int): the best value guaranteed for the min player
 
     Returns:
         int: the score of the given player
@@ -97,16 +99,29 @@ def minimax(board: Board, depth: int, isMax: bool) -> int:
         for move in get_legal_moves(board, max_player):
             board_copy = copy.deepcopy(board)
             board_copy.place_move(move.get_position(), max_player.get_color())
-            score = minimax(board_copy, depth - 1, False)
+            score = minimax(board_copy, depth - 1, False, alpha, beta)
             best = max(best, score)
+            alpha = max(alpha, best)
+
+            # alpha-beta pruning
+            if beta <= alpha:
+                break
+
         return best
+
     else:
         best = INFINITY
         for move in get_legal_moves(board, min_player):
             board_copy = copy.deepcopy(board)
             board_copy.place_move(move.get_position(), min_player.get_color())
-            score = minimax(board_copy, depth - 1, True)
+            score = minimax(board_copy, depth - 1, True, alpha, beta)
             best = min(best, score)
+            beta = min(beta, best)
+
+            # alpha-beta pruning
+            if beta <= alpha:
+                break
+
         return best
 
 
@@ -130,7 +145,7 @@ def next_best_move(board: Board, isMax: bool) -> Move:
             move.get_position(),
             max_player.get_color() if isMax else min_player.get_color(),
         )
-        score = minimax(board_copy, 2, not isMax)
+        score = minimax(board_copy, 2, not isMax, -INFINITY, INFINITY)
         if (isMax and score > best_score) or (not isMax and score < best_score):
             best_score = score
             best_move = move
