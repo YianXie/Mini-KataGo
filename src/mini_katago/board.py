@@ -117,9 +117,9 @@ class Board:
         self.state: list[list[Move]] = [
             [Move(row, col) for col in range(size)] for row in range(size)
         ]
-        self.__ko_positions: tuple[int, int] = None
-        self.__consecutive_passes: int = 0
-        self.__is_terminate: bool = False
+        self._ko_positions: tuple[int, int] = None
+        self._consecutive_passes: int = 0
+        self._is_terminate: bool = False
 
     def get_current_player(self) -> Player:
         """
@@ -214,7 +214,7 @@ class Board:
         Returns:
             bool: True if the game is over, False otherwise
         """
-        return self.__is_terminate
+        return self._is_terminate
 
     def count_liberties(self, move: Move) -> int:
         """
@@ -261,7 +261,7 @@ class Board:
             return False
 
         # Prevent playing the Ko directly after
-        elif move.get_position() == self.__ko_positions:
+        elif move.get_position() == self._ko_positions:
             return False
 
         return True
@@ -296,7 +296,7 @@ class Board:
             raise ValueError(f"Invalid color: {color}")
         if not self.get_move(position).is_empty():
             raise ValueError(f"Position already occupied: {position}")
-        if self.__is_terminate:
+        if self._is_terminate:
             raise RuntimeError("Game is already over!")
 
         move: Move = self.state[position[0]][position[1]]
@@ -307,7 +307,7 @@ class Board:
             raise ValueError("Illegal move")
 
         # Clear the previous Ko
-        self.__ko_positions = None
+        self._ko_positions = None
 
         # Calculate captures
         captures: list[Move] = self.check_captures(move)
@@ -322,7 +322,7 @@ class Board:
             and len(self.get_connected(move)) == 1
             and self.count_liberties(move) == 1
         ):
-            self.__ko_positions = captures[0].get_position()
+            self._ko_positions = captures[0].get_position()
 
         # Switch the player
         self.current_player = (
@@ -332,13 +332,13 @@ class Board:
         )
 
         # Reset the consecutive passes counter
-        self.__consecutive_passes = 0
+        self._consecutive_passes = 0
 
     def pass_move(self) -> None:
         """
         Make a player passes a move
         """
-        if self.__is_terminate:
+        if self._is_terminate:
             raise RuntimeError("Game is already over!")
 
         # Switches the current player
@@ -349,9 +349,9 @@ class Board:
         )
 
         # Increase the counter
-        self.__consecutive_passes += 1
-        if self.__consecutive_passes >= 2:
-            self.__is_terminate = True
+        self._consecutive_passes += 1
+        if self._consecutive_passes >= 2:
+            self._is_terminate = True
 
     def count_territories(self) -> tuple:
         """
