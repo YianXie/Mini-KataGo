@@ -22,14 +22,14 @@ try:
         row, col = map(int, input("Enter the position to play: ").split())
         if row == -1 or col == -1:
             board.pass_move()
+        elif row == -2 or col == -2:
+            board.undo()
         else:
             board.place_move((row, col), color)
         color *= -1
         board.print_ascii_board()
 except Exception as e:
     print("Error:", e)
-finally:
-    board.show_board()
 
 # for move in moves:
 #     if None in move:

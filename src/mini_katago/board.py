@@ -1,3 +1,4 @@
+import copy
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from collections import deque
@@ -120,6 +121,7 @@ class Board:
         self._ko_positions: tuple[int, int] = None
         self._consecutive_passes: int = 0
         self._is_terminate: bool = False
+        self._move_history: list = []
 
     def get_current_player(self) -> Player:
         """
@@ -246,6 +248,67 @@ class Board:
 
         return liberties
 
+    def undo(self) -> None:
+        """
+        Undo the last move played by any player.
+
+        This function restores the board to the state before the last move was played,
+        including restoring captured stones and switching back the player.
+
+        Raises:
+            RuntimeError: if there are no moves to undo (game just started)
+        """
+        # Check if there's any move history to undo
+        if not hasattr(self, "_move_history") or len(self._move_history) == 0:
+            raise RuntimeError("No moves to undo: the game has just started!")
+
+        # Pop the last move from history
+        last_move_info = self._move_history.pop()
+
+        # Extract information from the last move
+        move_type = last_move_info["type"]  # either "place" or "pass"
+        position = last_move_info["position"]
+        color = last_move_info["color"]
+        captures = last_move_info["captures"]
+        previous_ko = last_move_info["previous_ko"]
+        previous_consecutive_passes = last_move_info["previous_consecutive_passes"]
+        previous_is_terminate = last_move_info["previous_is_terminate"]
+        previous_capture_count = last_move_info["previous_capture_count"]
+
+        if move_type == "place":
+            # Remove the stone from the board
+            row, col = position
+            self.state[row][col].set_color(0)
+
+            # Restore captured stones
+            for captured_move in captures:
+                captured_row, captured_col = captured_move.get_position()
+                self.state[captured_row][captured_col].set_color(
+                    captured_move.get_color()
+                )
+
+            # Restore the capture count of the player who made the move
+            if color == -1:  # Black player made the move
+                self.black_player.set_capture_count(previous_capture_count)
+            else:  # White player made the move
+                self.white_player.set_capture_count(previous_capture_count)
+
+        # Restore Ko position
+        self._ko_positions = previous_ko
+
+        # Restore consecutive passes counter
+        self._consecutive_passes = previous_consecutive_passes
+
+        # Restore game termination state
+        self._is_terminate = previous_is_terminate
+
+        # Switch back to the previous player
+        self.current_player = (
+            self.black_player
+            if self.current_player is self.white_player
+            else self.white_player
+        )
+
     def move_is_valid(self, move: Move) -> bool:
         """
         Check if a given move is valid
@@ -306,11 +369,14 @@ class Board:
             move.set_color(prev_color)
             raise ValueError("Illegal move")
 
+        previous_capture_count = self.current_player.get_capture_count()
+
         # Clear the previous Ko
         self._ko_positions = None
 
         # Calculate captures
         captures: list[Move] = self.check_captures(move)
+        captures_copy: list[Move] = copy.deepcopy(captures)
         self.current_player.increase_capture_count(len(captures))
         for capture in captures:
             row, col = capture.get_position()
@@ -323,6 +389,19 @@ class Board:
             and self.count_liberties(move) == 1
         ):
             self._ko_positions = captures[0].get_position()
+
+        self._move_history.append(
+            {
+                "type": "place",
+                "position": position,
+                "color": color,
+                "captures": captures_copy,
+                "previous_ko": self._ko_positions,
+                "previous_consecutive_passes": self._consecutive_passes,
+                "previous_is_terminate": self._is_terminate,
+                "previous_capture_count": previous_capture_count,
+            }
+        )
 
         # Switch the player
         self.current_player = (
@@ -338,8 +417,23 @@ class Board:
         """
         Make a player passes a move
         """
+        # Handle edge case — if the game is already over
         if self._is_terminate:
             raise RuntimeError("Game is already over!")
+
+        # Append to move history
+        self._move_history.append(
+            {
+                "type": "pass",
+                "position": None,
+                "color": self.current_player.get_color(),
+                "captures": [],
+                "previous_ko": self._ko_positions,
+                "previous_consecutive_passes": self._consecutive_passes,
+                "previous_is_terminate": self._is_terminate,
+                "previous_capture_count": None,
+            }
+        )
 
         # Switches the current player
         self.current_player = (
