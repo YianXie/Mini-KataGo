@@ -369,15 +369,9 @@ class Board:
             move.set_color(prev_color)
             raise ValueError("Illegal move")
 
-        previous_capture_count = self.current_player.get_capture_count()
-
-        # Clear the previous Ko
-        self._ko_positions = None
-
         # Calculate captures
         captures: list[Move] = self.check_captures(move)
         captures_copy: list[Move] = copy.deepcopy(captures)
-        self.current_player.increase_capture_count(len(captures))
         for capture in captures:
             row, col = capture.get_position()
             self.state[row][col].set_color(0)
@@ -391,9 +385,15 @@ class Board:
                 "previous_ko": self._ko_positions,
                 "previous_consecutive_passes": self._consecutive_passes,
                 "previous_is_terminate": self._is_terminate,
-                "previous_capture_count": previous_capture_count,
+                "previous_capture_count": self.current_player.get_capture_count(),
             }
         )
+
+        # Increase the capture count after saving it to the history
+        self.current_player.increase_capture_count(len(captures))
+
+        # Clear the previous Ko
+        self._ko_positions = None
 
         # Check for Ko
         if (
