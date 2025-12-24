@@ -118,6 +118,8 @@ class Board:
             [Move(row, col) for col in range(size)] for row in range(size)
         ]
         self.__ko_positions: tuple[int, int] = None
+        self.__consecutive_passes: int = 0
+        self.__is_terminate: bool = False
 
     def get_current_player(self) -> Player:
         """
@@ -205,6 +207,15 @@ class Board:
                     visited.add(neighbor)
         return connected
 
+    def is_terminate(self) -> bool:
+        """
+        Check if the game is over
+
+        Returns:
+            bool: True if the game is over, False otherwise
+        """
+        return self.__is_terminate
+
     def count_liberties(self, move: Move) -> int:
         """
         Iterative solution to count the liberties of a given position
@@ -285,6 +296,8 @@ class Board:
             raise ValueError(f"Invalid color: {color}")
         if not self.get_move(position).is_empty():
             raise ValueError(f"Position already occupied: {position}")
+        if self.__is_terminate:
+            raise RuntimeError("Game is already over!")
 
         move: Move = self.state[position[0]][position[1]]
         prev_color = move.get_color()
@@ -317,6 +330,28 @@ class Board:
             if self.current_player is self.white_player
             else self.white_player
         )
+
+        # Reset the consecutive passes counter
+        self.__consecutive_passes = 0
+
+    def pass_move(self) -> None:
+        """
+        Make a player passes a move
+        """
+        if self.__is_terminate:
+            raise RuntimeError("Game is already over!")
+
+        # Switches the current player
+        self.current_player = (
+            self.black_player
+            if self.current_player is self.white_player
+            else self.white_player
+        )
+
+        # Increase the counter
+        self.__consecutive_passes += 1
+        if self.__consecutive_passes >= 2:
+            self.__is_terminate = True
 
     def count_territories(self) -> tuple:
         """

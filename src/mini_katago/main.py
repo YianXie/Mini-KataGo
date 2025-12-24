@@ -12,17 +12,18 @@ with open("src/mini_katago/data/test_territories.sgf", "rb") as f:
 root_node = game.get_root()
 black_player = Player(root_node.get("PB"), -1)
 white_player = Player(root_node.get("PW"), 1)
-moves = [node.get_move() for node in game.get_main_sequence()]
+# moves = [node.get_move() for node in game.get_main_sequence()]
 
 board = Board(9, black_player, white_player)
 color = -1
 
 try:
-    while True:
+    while not board.is_terminate():
         row, col = map(int, input("Enter the position to play: ").split())
         if row == -1 or col == -1:
-            break
-        board.place_move((row, col), color)
+            board.pass_move()
+        else:
+            board.place_move((row, col), color)
         color *= -1
         board.print_ascii_board()
 except Exception as e:
