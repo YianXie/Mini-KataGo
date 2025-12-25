@@ -2,7 +2,8 @@
 A simple MiniMax algorithm for Go
 """
 
-from mini_katago.board import Board, Player, Move
+from mini_katago.board import Board, Move
+from mini_katago.player import Player
 import math
 
 INFINITY = math.inf

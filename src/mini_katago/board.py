@@ -447,7 +447,7 @@ class Board:
         if self._consecutive_passes >= 2:
             self._is_terminate = True
 
-    def count_territories(self) -> tuple:
+    def calculate_score(self) -> tuple:
         """
         Estimate the territories for black and white player
 
@@ -489,6 +489,10 @@ class Board:
                         white_territories += empty_moves
                     visited.update(queue_visited)
                 visited.add(move)
+
+        # Add captured stone count
+        black_territories += self.black_player.get_capture_count() * 2
+        white_territories += self.white_player.get_capture_count() * 2
 
         return (black_territories, white_territories)
 

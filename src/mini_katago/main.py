@@ -37,5 +37,5 @@ except Exception as e:
 #     color, row, col = move[0], move[1][0], move[1][1]
 #     board.place_move((row, col), -1 if color == "b" else 1)
 
-# print(board.count_territories())
+# print(board.calculate_score())
 # board.show_board()
