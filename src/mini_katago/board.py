@@ -110,6 +110,8 @@ class Board:
 
         Args:
             size (int): the size of the board
+            black_player (Player): the black player
+            white_player (Player): the white player
         """
         self.size: int = size
         self.black_player: Player = black_player
