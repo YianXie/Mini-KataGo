@@ -25,6 +25,7 @@ New features include:
 
 -   Depth-limited Minimax algorithm with alpha-beta pruning
 -   Auto game-over when there are 2 consecutive passes
+-   Undo feature for game board
 
 ## File structure
 
