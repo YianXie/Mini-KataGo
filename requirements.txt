@@ -4,6 +4,7 @@ fonttools==4.61.1
 iniconfig==2.3.0
 kiwisolver==1.4.9
 matplotlib==3.10.8
+-e git+https://github.com/YianXie/Mini-KataGo.git@ad41240390f0d8729748e96456d9604299b64679#egg=mini_katago
 numpy==2.3.5
 packaging==25.0
 pillow==12.0.0
