@@ -4,12 +4,11 @@ A simple MiniMax algorithm for Go
 
 from mini_katago.board import Board, Player, Move
 import math
-import copy
 
 INFINITY = math.inf
 
 # Here, the min player is black, and the max player is white (MiniMax)
-min_player, max_player = Player("Max Player", -1), Player("Min Player", 1)
+min_player, max_player = Player("Black Player", -1), Player("White Player", 1)
 board = Board(9, min_player, max_player)
 
 
@@ -97,9 +96,9 @@ def minimax(board: Board, depth: int, isMax: bool, alpha: int, beta: int) -> int
     if isMax:
         best = -INFINITY
         for move in get_legal_moves(board, max_player):
-            board_copy = copy.deepcopy(board)
-            board_copy.place_move(move.get_position(), max_player.get_color())
-            score = minimax(board_copy, depth - 1, False, alpha, beta)
+            board.place_move(move.get_position(), max_player.get_color())
+            score = minimax(board, depth - 1, False, alpha, beta)
+            board.undo()
             best = max(best, score)
             alpha = max(alpha, best)
 
@@ -112,9 +111,9 @@ def minimax(board: Board, depth: int, isMax: bool, alpha: int, beta: int) -> int
     else:
         best = INFINITY
         for move in get_legal_moves(board, min_player):
-            board_copy = copy.deepcopy(board)
-            board_copy.place_move(move.get_position(), min_player.get_color())
-            score = minimax(board_copy, depth - 1, True, alpha, beta)
+            board.place_move(move.get_position(), min_player.get_color())
+            score = minimax(board, depth - 1, True, alpha, beta)
+            board.undo()
             best = min(best, score)
             beta = min(beta, best)
 
@@ -140,12 +139,12 @@ def next_best_move(board: Board, isMax: bool) -> Move:
     best_move = None
 
     for move in get_legal_moves(board, max_player if isMax else min_player):
-        board_copy = copy.deepcopy(board)
-        board_copy.place_move(
+        board.place_move(
             move.get_position(),
             max_player.get_color() if isMax else min_player.get_color(),
         )
-        score = minimax(board_copy, 2, not isMax, -INFINITY, INFINITY)
+        score = minimax(board, 2, not isMax, -INFINITY, INFINITY)
+        board.undo()
         if (isMax and score > best_score) or (not isMax and score < best_score):
             best_score = score
             best_move = move
