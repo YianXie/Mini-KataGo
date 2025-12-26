@@ -1,4 +1,5 @@
 import copy
+from typing import List
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from collections import deque
@@ -210,6 +211,28 @@ class Board:
                     connected.append(neighbor)
                     visited.add(neighbor)
         return connected
+
+    def get_legal_moves(self, color: int) -> List[Move]:
+        """
+        Get all legal moves for a given player
+
+        Args:
+            board (Board): the board to check
+            player (Player): the player to get all legal moves with
+
+        Returns:
+            list[Move]: all legal moves for the given player
+        """
+        moves: list[Move] = []
+        for row in self.state:
+            for move in row:
+                if not move.is_empty():
+                    continue
+                move.set_color(color)
+                if self.move_is_valid(move):
+                    moves.append(move)
+                move.set_color(0)
+        return moves
 
     def is_terminate(self) -> bool:
         """
