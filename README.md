@@ -27,6 +27,14 @@ New features include:
 -   Auto game-over when there are 2 consecutive passes
 -   Undo feature for game board
 
+### Week 3 (WIP)
+
+Implemented a basic pure Monte Carlo Go Simulation. It works by randomly choose legal position to play and calculate the win rate.
+
+New features include:
+
+-   A basic pure Monte Carlo Go Simulation
+
 ## File structure
 
 ```
@@ -39,6 +47,7 @@ mini-katago/
 │   │   │── player.py           # A file representing the player
 │   │   │── rules.py            # A file that contains some basic rules for Go
 │   │   │── minimax.py          # A simple depth-limited minimax algorithm for Go
+│   │   │── mcts.py             # A Monte Carlo Go Simulation file (also refer to as Monte Carlo Tree Search)
 ├── tests/                      # All unit-tests
     ├── test_board_rules.py     # Test if board rules works correctly
 ├── requirements.txt
