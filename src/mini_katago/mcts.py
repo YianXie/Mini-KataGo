@@ -50,7 +50,7 @@ def next_best_move(board: Board, player: Player):
             color *= -1
 
     best_win_rate: float = 0
-    best_move: Move | None
+    best_move: Move | None = None
     for move, win_rate in win_rates.items():
         if win_rate[1] / win_rate[0] > best_win_rate:
             best_win_rate = win_rate[1] / win_rate[0]
