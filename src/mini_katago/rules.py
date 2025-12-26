@@ -4,7 +4,7 @@ class Rules:
     """
 
     @staticmethod
-    def position_is_valid(position: tuple[int], size=9) -> bool:
+    def position_is_valid(position: tuple[int, int], size=9) -> bool:
         """
         Check if the given position is valid
 

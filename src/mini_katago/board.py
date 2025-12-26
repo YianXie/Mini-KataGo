@@ -1,5 +1,4 @@
 import copy
-from typing import List
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from collections import deque
@@ -25,7 +24,7 @@ class Move:
         self.col = col
         self.color = color
 
-    def set_position(self, position) -> None:
+    def set_position(self, position: tuple[int, int]) -> None:
         """
         Set the position of the move
 
@@ -39,7 +38,7 @@ class Move:
             raise ValueError(f"Invalid position: {position}")
         self.position = position
 
-    def set_color(self, color) -> None:
+    def set_color(self, color: int) -> None:
         """
         Set the color of the move
 
@@ -53,7 +52,7 @@ class Move:
             raise ValueError(f"Invalid color: {color}")
         self.color = color
 
-    def get_position(self) -> tuple:
+    def get_position(self) -> tuple[int, int]:
         """
         Get the position of the move
 
@@ -121,7 +120,7 @@ class Board:
         self.state: list[list[Move]] = [
             [Move(row, col) for col in range(size)] for row in range(size)
         ]
-        self._ko_positions: tuple[int, int] = None
+        self._ko_positions: tuple[int, int] | None = None
         self._consecutive_passes: int = 0
         self._is_terminate: bool = False
         self._move_history: list = []
@@ -153,7 +152,7 @@ class Board:
         """
         return self.white_player
 
-    def get_move(self, position: tuple[int]) -> Move:
+    def get_move(self, position: tuple[int, int]) -> Move:
         """
         Get the move at the given position
 
@@ -212,7 +211,7 @@ class Board:
                     visited.add(neighbor)
         return connected
 
-    def get_legal_moves(self, color: int) -> List[Move]:
+    def get_legal_moves(self, color: int) -> list[Move]:
         """
         Get all legal moves for a given player
 
@@ -365,7 +364,7 @@ class Board:
         # Ensure uniqueness
         return list[Move](set[Move](captures))
 
-    def place_move(self, position: tuple[int], color: int) -> None:
+    def place_move(self, position: tuple[int, int], color: int) -> None:
         """
         Place a move on the board
 
@@ -472,7 +471,7 @@ class Board:
         if self._consecutive_passes >= 2:
             self._is_terminate = True
 
-    def calculate_score(self) -> tuple:
+    def calculate_score(self) -> tuple[int, int]:
         """
         Estimate the territories for black and white player
 
@@ -543,7 +542,7 @@ class Board:
             ax.plot([x, x], [0, self.size - 1], "k")
         for y in range(self.size):
             ax.plot([0, self.size - 1], [y, y], "k")
-        ax.set_position([0, 0, 1, 1])
+        ax.set_position((0.0, 0.0, 1.0, 1.0))
 
         for row in self.state:
             for move in row:

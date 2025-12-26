@@ -4,7 +4,6 @@ A pure Monte Carlo Tree Search algorithm for Go
 
 import copy
 import random
-from typing import DefaultDict, List
 from collections import defaultdict
 from mini_katago.board import Board, Move
 from mini_katago.player import Player
@@ -26,9 +25,7 @@ def next_best_move(board: Board, player: Player):
         player (Player): the player that is playing
     """
     # The first element in the tuple represents the total games played, the second element represents the amount of games won
-    win_rates: DefaultDict[Move, List[int]] = defaultdict[Move, List[int]](
-        lambda: [0, 0]
-    )
+    win_rates = defaultdict[Move, list[int]](lambda: [0, 0])
     for _ in range(SIMULATIONS):
         board_copy = copy.deepcopy(board)
         depth = 0
@@ -53,7 +50,7 @@ def next_best_move(board: Board, player: Player):
             color *= -1
 
     best_win_rate: float = 0
-    best_move: Move = None
+    best_move: Move | None
     for move, win_rate in win_rates.items():
         if win_rate[1] / win_rate[0] > best_win_rate:
             best_win_rate = win_rate[1] / win_rate[0]
