@@ -1,4 +1,5 @@
 import copy
+from typing import Any
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from collections import deque
@@ -11,7 +12,7 @@ class Move:
     A class representing a move
     """
 
-    def __init__(self, row=-1, col=-1, color=0) -> None:
+    def __init__(self, row: int = -1, col: int = -1, color: int = 0) -> None:
         """
         Initialize the move
 
@@ -79,7 +80,7 @@ class Move:
         """
         return self.color == 0
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         Return a developer-friendly message
 
@@ -123,7 +124,7 @@ class Board:
         self._ko_positions: tuple[int, int] | None = None
         self._consecutive_passes: int = 0
         self._is_terminate: bool = False
-        self._move_history: list = []
+        self._move_history: list[dict[str, Any]] = []
 
     def get_current_player(self) -> Player:
         """
@@ -353,7 +354,7 @@ class Board:
 
         return True
 
-    def check_captures(self, move: Move) -> list:
+    def check_captures(self, move: Move) -> list[Move]:
         captures = []
         for neighbor in self.get_neighbors(move):
             if neighbor.get_color() == move.get_color() * -1:

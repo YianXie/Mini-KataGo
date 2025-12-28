@@ -57,7 +57,7 @@ black_player, white_player = Player("Black Player", -1), Player("White Player", 
 board = Board(9, black_player, white_player)
 
 
-def next_best_move(board: Board, player: Player):
+def next_best_move(board: Board, player: Player) -> Move | None:
     """
     Get the next best move by playing random moves and calculate win rates
 
@@ -113,5 +113,8 @@ while not board.is_terminate():
     board.print_ascii_board()
 
     move = next_best_move(board, black_player)
-    board.place_move(move.get_position(), white_player.get_color())
-    board.print_ascii_board()
+    if move is not None:
+        board.place_move(move.get_position(), white_player.get_color())
+        board.print_ascii_board()
+    else:
+        break

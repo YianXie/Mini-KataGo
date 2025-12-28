@@ -8,7 +8,7 @@ from sgfmill import sgf
 from mini_katago.player import Player
 
 with open("src/mini_katago/data/test_territories.sgf", "rb") as f:
-    game = sgf.Sgf_game.from_bytes(f.read())
+    game = sgf.Sgf_game.from_bytes(f.read())  # type: ignore
 root_node = game.get_root()
 black_player = Player(root_node.get("PB"), -1)
 white_player = Player(root_node.get("PW"), 1)

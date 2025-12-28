@@ -78,7 +78,7 @@ def minimax(board: Board, depth: int, isMax: bool, alpha: float, beta: float) ->
             score = minimax(board, depth - 1, False, alpha, beta)
             board.undo()
             best = max(best, score)
-            alpha = max(alpha, best)  # type: ignore
+            alpha = max(alpha, best)
 
             # alpha-beta pruning
             if beta <= alpha:
@@ -93,7 +93,7 @@ def minimax(board: Board, depth: int, isMax: bool, alpha: float, beta: float) ->
             score = minimax(board, depth - 1, True, alpha, beta)
             board.undo()
             best = min(best, score)
-            beta = min(beta, best)  # type: ignore
+            beta = min(beta, best)
 
             # alpha-beta pruning
             if beta <= alpha:
