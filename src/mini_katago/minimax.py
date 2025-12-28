@@ -54,7 +54,7 @@ def evaluate(board: Board) -> int:
     return white_captures - black_captures
 
 
-def minimax(board: Board, depth: int, isMax: bool, alpha: int, beta: int) -> int:
+def minimax(board: Board, depth: int, isMax: bool, alpha: float, beta: float) -> float:
     """
     A depth-limited minimax function the value of a given player
 
@@ -73,12 +73,12 @@ def minimax(board: Board, depth: int, isMax: bool, alpha: int, beta: int) -> int
 
     if isMax:
         best = -INFINITY
-        for move in board.get_legal_moves(board, max_player.get_color()):
+        for move in board.get_legal_moves(max_player.get_color()):
             board.place_move(move.get_position(), max_player.get_color())
             score = minimax(board, depth - 1, False, alpha, beta)
             board.undo()
             best = max(best, score)
-            alpha = max(alpha, best)
+            alpha = max(alpha, best)  # type: ignore
 
             # alpha-beta pruning
             if beta <= alpha:
@@ -88,12 +88,12 @@ def minimax(board: Board, depth: int, isMax: bool, alpha: int, beta: int) -> int
 
     else:
         best = INFINITY
-        for move in board._moves(board, min_player):
+        for move in board.get_legal_moves(min_player.get_color()):
             board.place_move(move.get_position(), min_player.get_color())
             score = minimax(board, depth - 1, True, alpha, beta)
             board.undo()
             best = min(best, score)
-            beta = min(beta, best)
+            beta = min(beta, best)  # type: ignore
 
             # alpha-beta pruning
             if beta <= alpha:
@@ -102,7 +102,7 @@ def minimax(board: Board, depth: int, isMax: bool, alpha: int, beta: int) -> int
         return best
 
 
-def next_best_move(board: Board, isMax: bool) -> Move:
+def next_best_move(board: Board, isMax: bool) -> Move | None:
     """
     Find the next best move for the given player
 
@@ -117,7 +117,7 @@ def next_best_move(board: Board, isMax: bool) -> Move:
     best_move = None
 
     for move in board.get_legal_moves(
-        board, max_player.get_color() if isMax else min_player.get_color()
+        max_player.get_color() if isMax else min_player.get_color()
     ):
         board.place_move(
             move.get_position(),

@@ -3,10 +3,14 @@ cycler==0.12.1
 fonttools==4.61.1
 iniconfig==2.3.0
 kiwisolver==1.4.9
+librt==0.7.5
 matplotlib==3.10.8
--e git+https://github.com/YianXie/Mini-KataGo.git@ad41240390f0d8729748e96456d9604299b64679#egg=mini_katago
+-e git+https://github.com/YianXie/Mini-KataGo.git@e2ffbd1d3991e848fd023c4978cb9486b649c3a9#egg=mini_katago
+mypy==1.19.1
+mypy_extensions==1.1.0
 numpy==2.3.5
 packaging==25.0
+pathspec==0.12.1
 pillow==12.0.0
 pluggy==1.6.0
 Pygments==2.19.2
@@ -16,3 +20,4 @@ python-dateutil==2.9.0.post0
 ruff==0.14.10
 sgfmill==1.1.1
 six==1.17.0
+typing_extensions==4.15.0
