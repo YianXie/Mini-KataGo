@@ -11,7 +11,7 @@ jobs:
             - name: Install python
               uses: actions/setup-python@v4
               with:
-                  python-version: "3.13"
+                  python-version: "3.11"
 
             - name: Install dependencies
               run: |
@@ -31,12 +31,13 @@ jobs:
             - name: Install python
               uses: actions/setup-python@v4
               with:
-                  python-version: "3.13"
+                  python-version: "3.11"
 
             - name: Install dependencies
               run: |
-                  pip install -r requirements.txt
+                  python -m pip install --upgrade pip
+                  pip install -r requirements-dev.txt
 
             - name: Run Mypy
               run: |
-                  mypy . --show-error-codes
+                  mypy --show-error-codes

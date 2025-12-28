@@ -5,7 +5,6 @@ iniconfig==2.3.0
 kiwisolver==1.4.9
 librt==0.7.5
 matplotlib==3.10.8
--e git+https://github.com/YianXie/Mini-KataGo.git@e2ffbd1d3991e848fd023c4978cb9486b649c3a9#egg=mini_katago
 mypy==1.19.1
 mypy_extensions==1.1.0
 numpy==2.3.5
