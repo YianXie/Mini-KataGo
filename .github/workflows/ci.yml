@@ -2,7 +2,7 @@ name: CI
 on: ["push", "pull_request"]
 
 jobs:
-    ruff:
+    ci:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
@@ -27,7 +27,7 @@ jobs:
                   uv run mypy --show-error-codes
             - name: Run isort
               run: |
-                  uv run isort --check-only --diff
+                  uv run isort --check-only --diff .
             - name: Run pip-audit
               run: |
                   uv run pip-audit
