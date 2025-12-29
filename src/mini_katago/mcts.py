@@ -4,10 +4,10 @@ A pure Monte Carlo Tree Search algorithm for Go
 
 import math
 from typing import Self
-from mini_katago.board import Board, Move
-from mini_katago.player import Player
-from mini_katago.constants import EXPLORATION_CONSTANT, INFINITY
 
+from mini_katago.board import Board, Move
+from mini_katago.constants import EXPLORATION_CONSTANT, INFINITY
+from mini_katago.player import Player
 
 SIMULATIONS = 500
 MAX_DEPTH = 50

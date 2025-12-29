@@ -1,8 +1,10 @@
 import copy
-from typing import Any
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
 from collections import deque
+from typing import Any
+
+import matplotlib.patches as patches
+import matplotlib.pyplot as plt
+
 from mini_katago.player import Player
 from mini_katago.rules import Rules
 

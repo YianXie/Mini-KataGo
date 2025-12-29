@@ -1,4 +1,5 @@
 import pytest
+
 from mini_katago.board import Board
 from mini_katago.player import Player
 

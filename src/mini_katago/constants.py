@@ -1,6 +1,5 @@
 import math
 
-
 INFINITY = math.inf
 """
 Represents a very large value

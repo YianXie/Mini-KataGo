@@ -2,9 +2,9 @@
 A file for testing
 """
 
-from mini_katago.board import Board
 from sgfmill import sgf
 
+from mini_katago.board import Board
 from mini_katago.player import Player
 
 with open("src/mini_katago/data/test_territories.sgf", "rb") as f:
