@@ -3,51 +3,10 @@ A pure Monte Carlo Tree Search algorithm for Go
 """
 
 import math
-import random
-from collections import defaultdict
+from typing import Self
 from mini_katago.board import Board, Move
 from mini_katago.player import Player
-
-
-class Node:
-    """
-    A node class represents a root move
-    """
-
-    EXPLORATION_CONSTANT = 1.5
-
-    def __init__(
-        self, visits: int, value: int, untried_moves: list[Move], player_to_play: Player
-    ) -> None:
-        """
-        Initialize a node object
-
-        Args:
-            visits (int): the amount of visits that the node has
-            value (int): the value of this node (-1, 0, or 1), represents win/lose/tie
-            untried_moves (list[Move]): all of the legal moves available at this move
-            player_to_play (Player): the player that is about to play next
-        """
-        self.visits = visits
-        self.value = value
-        self.untried_moves = untried_moves
-        self.player_to_play = player_to_play
-        self.child = None
-
-    def uct_score(self, parent_visits: int, C: float = EXPLORATION_CONSTANT) -> float:
-        """
-        Calculate the UCT (Upper Confidence Bounds applied to tree) score
-
-        Args:
-            parent_visits (int): the node's parent's visits
-            C (float, optional): the exploration constant, normally between 1.2-2. Defaults to EXPLORATION_CONSTANT (1.5).
-
-        Returns:
-            float: the UCT score
-        """
-        return self.value / self.visits + C * math.sqrt(
-            math.log(parent_visits) / self.visits
-        )
+from mini_katago.constants import EXPLORATION_CONSTANT, INFINITY
 
 
 SIMULATIONS = 500
@@ -57,64 +16,85 @@ black_player, white_player = Player("Black Player", -1), Player("White Player", 
 board = Board(9, black_player, white_player)
 
 
-def next_best_move(board: Board, player: Player) -> Move | None:
+class Node:
     """
-    Get the next best move by playing random moves and calculate win rates
-
-    Args:
-        board (Board): the board state
-        player (Player): the player that is playing
+    A node class represents the position of a move
     """
-    # The first element in the tuple represents the total games played, the second element represents the amount of games won
-    win_rates = defaultdict[Move, list[int]](lambda: [0, 0])
-    for _ in range(SIMULATIONS):
-        depth = 0
-        total_moves = 1  # start from 1 because of the root move
-        color = player.get_color()
-        root_move = random.choice(board.get_legal_moves(color))
-        board.place_move(root_move.get_position(), player.get_color())
-        while True:
-            depth += 1
-            legal_moves: list[Move] = board.get_legal_moves(color)
-            if legal_moves:
-                random_move = random.choice(legal_moves)
-                total_moves += 1
-                board.place_move(random_move.get_position(), color)
-                if board.is_terminate() or depth >= MAX_DEPTH:
-                    win_rates[root_move][0] += 1
-                    scores = board.calculate_score()
-                    if (player.get_color() == -1 and scores[0] > scores[1]) or (
-                        player.get_color() == 1 and scores[0] < scores[1]
-                    ):
-                        win_rates[root_move][1] += 1
-                        break
-            else:
-                board.pass_move()  # pass if no legal moves available
 
-            color *= -1
+    def __init__(
+        self,
+        visits: int,
+        total_wins: int,
+        player_to_play: Player,
+        parent: Self | None,
+        move_from_parent: Move | None,
+    ) -> None:
+        """
+        Initialize a node object
 
-        # Undo all moves
-        for _ in range(total_moves):
-            board.undo()
+        Args:
+            visits (int): the amount of visits that the node has
+            total_wins (int): the accumulated wins of this node
+            player_to_play (Player): the player that is about to play next
+            parent (Self | None): pointer to the previous node, root has None
+            move_from_parent (Move | None): the parent move that leads to this node, root has None
+        """
+        self.visits = visits
+        self.total_wins = total_wins
+        self.player_to_play = player_to_play
+        self.parent = parent
+        self.move_from_parent = move_from_parent
+        self.children: dict[Move, Self] = {}
 
-    best_win_rate: float = 0
-    best_move: Move | None = None
-    for move, win_rate in win_rates.items():
-        if win_rate[1] / win_rate[0] > best_win_rate:
-            best_win_rate = win_rate[1] / win_rate[0]
-            best_move = move
+    def uct_score(self, parent_visits: int, C: float = EXPLORATION_CONSTANT) -> float:
+        """
+        Calculate the UCT (Upper Confidence Bounds applied to tree) score
 
-    return best_move
+        Args:
+            parent_visits (int): the node's parent's visits
+            C (float, optional): the exploration constant, normally between 1.2-2. Defaults to 1.5.
 
+        Returns:
+            float: the UCT score
+        """
+        if self.visits == 0:
+            return INFINITY
+        return self.total_wins / self.visits + C * math.sqrt(
+            math.log(parent_visits) / self.visits
+        )
 
-while not board.is_terminate():
-    row, col = map(int, input("Enter your move: ").strip().split())
-    board.place_move((row, col), black_player.get_color())
-    board.print_ascii_board()
+    def select_child(self) -> Self | None:
+        """
+        Return the child with the highest UCT score
 
-    move = next_best_move(board, black_player)
-    if move is not None:
-        board.place_move(move.get_position(), white_player.get_color())
-        board.print_ascii_board()
-    else:
-        break
+        Returns:
+            Self | None: the child with the highest UCT score, or None if node has no children
+        """
+        best_score = -INFINITY
+        best_node: Self | None = None
+        if self.children:
+            for node in self.children.values():
+                score = node.uct_score(node.parent.visits)  # type: ignore
+                if score > best_score:
+                    best_score = score
+                    best_node = node
+            return best_node
+        return None
+
+    def select_move(self) -> Move | None:
+        """
+        Return the child move with the highest UCT score
+
+        Returns:
+            Move | None: the child move with the highest UCT score, or None if node has no children
+        """
+        best_score = -INFINITY
+        best_move: Move | None = None
+        if self.children:
+            for move, node in self.children.items():
+                score = node.uct_score(node.parent.visits)  # type: ignore
+                if score > best_score:
+                    best_score = score
+                    best_move = move
+            return best_move
+        return None

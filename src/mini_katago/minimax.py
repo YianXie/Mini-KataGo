@@ -27,11 +27,11 @@ def game_is_over(board: Board, player: Player) -> bool:
         for move in row:
             if not move.is_empty():
                 continue
-            move.set_color(player.get_color())
-            if board.move_is_valid(move):
-                move.set_color(0)
+            # Create a temporary Move object with the test color for validation
+            # This avoids mutating the actual Move object in the board state
+            test_move = Move(move.row, move.col, player.get_color())
+            if board.move_is_valid(test_move):
                 return False
-            move.set_color(0)
     return True
 
 

@@ -12,7 +12,9 @@ class Move:
     A class representing a move
     """
 
-    def __init__(self, row: int = -1, col: int = -1, color: int = 0) -> None:
+    def __init__(
+        self, row: int = -1, col: int = -1, color: int = 0, *, passed: bool = False
+    ) -> None:
         """
         Initialize the move
 
@@ -20,24 +22,12 @@ class Move:
             row (int, optional): the row of the move. Defaults to -1.
             col (int, optional): the column of the move. Defaults to -1.
             color (int, optional): the color of the move. Defaults to 0.
+            pass_move (bool, optional): whether the move is passed. Defaults to False.
         """
+        self.passed = passed
         self.row = row
         self.col = col
         self.color = color
-
-    def set_position(self, position: tuple[int, int]) -> None:
-        """
-        Set the position of the move
-
-        Args:
-            position (tuple): the position of the move
-
-        Raises:
-            ValueError: if the position is invalid
-        """
-        if not Rules.position_is_valid(position):
-            raise ValueError(f"Invalid position: {position}")
-        self.position = position
 
     def set_color(self, color: int) -> None:
         """
@@ -79,6 +69,67 @@ class Move:
             bool: True if it is empty, False otherwise
         """
         return self.color == 0
+
+    def is_passed(self) -> bool:
+        """
+        Check if the move is passed
+
+        Returns:
+            bool: True if the move is passed, False otherwise
+        """
+        return self.passed
+
+    def __hash__(self) -> int:
+        """
+        Return the hash of the move based on its position and color
+
+        Returns:
+            int: the hash value
+        """
+        return hash((self.row, self.col, self.passed))
+
+    def __eq__(self, other: object) -> bool:
+        """
+        Check if two moves are equal
+
+        Args:
+            other: the other object to compare with
+
+        Returns:
+            bool: True if the moves are equal, False otherwise
+        """
+        if not isinstance(other, Move):
+            return NotImplemented
+        return (
+            self.row == other.row
+            and self.col == other.col
+            and self.color == other.color
+            and self.passed == other.passed
+        )
+
+    def __lt__(self, other: object) -> bool:
+        """
+        Compare two moves for ordering
+
+        Args:
+            other: the other Move to compare with
+
+        Returns:
+            bool: True if this move is less than the other, False otherwise
+
+        Raises:
+            TypeError: if other is not a Move
+        """
+        if not isinstance(other, Move):
+            return NotImplemented
+        # Compare by row first, then col, then color, then passed
+        if self.row != other.row:
+            return self.row < other.row
+        if self.col != other.col:
+            return self.col < other.col
+        if self.color != other.color:
+            return self.color < other.color
+        return self.passed < other.passed
 
     def __repr__(self) -> str:
         """
@@ -212,13 +263,13 @@ class Board:
                     visited.add(neighbor)
         return connected
 
-    def get_legal_moves(self, color: int) -> list[Move]:
+    def get_legal_moves(self, color: int) -> list[Move] | None:
         """
         Get all legal moves for a given player
 
         Args:
             board (Board): the board to check
-            player (Player): the player to get all legal moves with
+            color (int): the color of the player to get all legal moves with
 
         Returns:
             list[Move]: all legal moves for the given player
@@ -228,11 +279,10 @@ class Board:
             for move in row:
                 if not move.is_empty():
                     continue
-                move.set_color(color)
-                if self.move_is_valid(move):
+                test_move = Move(move.row, move.col, color)  # create a temporary move
+                if self.move_is_valid(test_move):
                     moves.append(move)
-                move.set_color(0)
-        return moves
+        return moves if moves else None
 
     def is_terminate(self) -> bool:
         """
