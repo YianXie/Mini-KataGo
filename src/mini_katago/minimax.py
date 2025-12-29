@@ -73,31 +73,39 @@ def minimax(board: Board, depth: int, isMax: bool, alpha: float, beta: float) ->
 
     if isMax:
         best = -INFINITY
-        for move in board.get_legal_moves(max_player.get_color()):
-            board.place_move(move.get_position(), max_player.get_color())
-            score = minimax(board, depth - 1, False, alpha, beta)
-            board.undo()
-            best = max(best, score)
-            alpha = max(alpha, best)
+        legal_moves = board.get_legal_moves(max_player.get_color())
+        if legal_moves is not None:
+            for move in legal_moves:
+                board.place_move(move.get_position(), max_player.get_color())
+                score = minimax(board, depth - 1, False, alpha, beta)
+                board.undo()
+                best = max(best, score)
+                alpha = max(alpha, best)
 
-            # alpha-beta pruning
-            if beta <= alpha:
-                break
+                # alpha-beta pruning
+                if beta <= alpha:
+                    break
+        else:
+            board.pass_move()
 
         return best
 
     else:
         best = INFINITY
-        for move in board.get_legal_moves(min_player.get_color()):
-            board.place_move(move.get_position(), min_player.get_color())
-            score = minimax(board, depth - 1, True, alpha, beta)
-            board.undo()
-            best = min(best, score)
-            beta = min(beta, best)
+        legal_moves = board.get_legal_moves(min_player.get_color())
+        if legal_moves is not None:
+            for move in legal_moves:
+                board.place_move(move.get_position(), min_player.get_color())
+                score = minimax(board, depth - 1, True, alpha, beta)
+                board.undo()
+                best = min(best, score)
+                beta = min(beta, best)
 
-            # alpha-beta pruning
-            if beta <= alpha:
-                break
+                # alpha-beta pruning
+                if beta <= alpha:
+                    break
+        else:
+            board.pass_move()
 
         return best
 
@@ -116,18 +124,20 @@ def next_best_move(board: Board, isMax: bool) -> Move | None:
     best_score = -INFINITY if isMax else INFINITY
     best_move = None
 
-    for move in board.get_legal_moves(
+    legal_moves = board.get_legal_moves(
         max_player.get_color() if isMax else min_player.get_color()
-    ):
-        board.place_move(
-            move.get_position(),
-            max_player.get_color() if isMax else min_player.get_color(),
-        )
-        score = minimax(board, 2, not isMax, -INFINITY, INFINITY)
-        board.undo()
-        if (isMax and score > best_score) or (not isMax and score < best_score):
-            best_score = score
-            best_move = move
+    )
+    if legal_moves is not None:
+        for move in legal_moves:
+            board.place_move(
+                move.get_position(),
+                max_player.get_color() if isMax else min_player.get_color(),
+            )
+            score = minimax(board, 2, not isMax, -INFINITY, INFINITY)
+            board.undo()
+            if (isMax and score > best_score) or (not isMax and score < best_score):
+                best_score = score
+                best_move = move
 
     return best_move
 
