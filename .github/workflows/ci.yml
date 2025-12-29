@@ -20,7 +20,7 @@ jobs:
 
             - name: Run Ruff
               run: |
-                  uv run ruff --check
+                  uv run ruff check
 
     mypy:
         runs-on: ubuntu-latest
