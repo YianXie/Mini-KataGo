@@ -18,7 +18,7 @@ board = Board(9, black_player, white_player)
 
 class Node:
     """
-    A node class represents the position of a move
+    A node represents a game state (board position).
     """
 
     def __init__(
@@ -44,7 +44,9 @@ class Node:
         self.player_to_play = player_to_play
         self.parent = parent
         self.move_from_parent = move_from_parent
+        self.untried_moves: list[Move] = []
         self.children: dict[Move, Self] = {}
+        self.is_terminal: bool = board.is_terminate()
 
     def uct_score(self, parent_visits: int, C: float = EXPLORATION_CONSTANT) -> float:
         """
