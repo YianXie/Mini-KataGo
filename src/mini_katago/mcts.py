@@ -24,7 +24,7 @@ class Node:
     def __init__(
         self,
         visits: int,
-        total_wins: int,
+        total_value: int,
         player_to_play: Player,
         parent: Self | None,
         move_from_parent: Move | None,
@@ -40,13 +40,12 @@ class Node:
             move_from_parent (Move | None): the parent move that leads to this node, root has None
         """
         self.visits = visits
-        self.total_wins = total_wins
+        self.total_wins = total_value
         self.player_to_play = player_to_play
         self.parent = parent
         self.move_from_parent = move_from_parent
-        self.untried_moves: list[Move] = []
-        self.children: dict[Move, Self] = {}
-        self.is_terminal: bool = board.is_terminate()
+        self.untried_moves: list[Move]
+        self.children: dict[Move, Self]
 
     def uct_score(self, parent_visits: int, C: float = EXPLORATION_CONSTANT) -> float:
         """
@@ -62,7 +61,8 @@ class Node:
         if self.visits == 0:
             return INFINITY
         return self.total_wins / self.visits + C * math.sqrt(
-            math.log(parent_visits) / self.visits
+            math.log(max(1, parent_visits))  # uses max(1, parent_visits) as a safeguard
+            / self.visits
         )
 
     def select_child(self) -> Self | None:

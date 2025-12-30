@@ -102,12 +102,7 @@ class Move:
         """
         if not isinstance(other, Move):
             return NotImplemented
-        return (
-            self.row == other.row
-            and self.col == other.col
-            and self.color == other.color
-            and self.passed == other.passed
-        )
+        return (self.row, self.col, self.passed) == (other.row, other.col, other.passed)
 
     def __lt__(self, other: object) -> bool:
         """
