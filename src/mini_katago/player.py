@@ -1,3 +1,5 @@
+from typing import Self
+
 from mini_katago.rules import Rules
 
 
@@ -17,6 +19,7 @@ class Player:
         self.name = name
         self.color = color
         self.capture_count = 0
+        self.opponent: Self
 
     def set_name(self, name: str) -> None:
         """
@@ -87,3 +90,6 @@ class Player:
             int: the capture count
         """
         return self.capture_count
+
+    def __repr__(self) -> str:
+        return f"player name: {self.name}, player color: {self.color}"

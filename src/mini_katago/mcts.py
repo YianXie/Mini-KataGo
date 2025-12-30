@@ -2,18 +2,24 @@
 A pure Monte Carlo Tree Search algorithm for Go
 """
 
+import copy
 import math
+import random
 from typing import Self
 
+# fmt: off
 from mini_katago.board import Board, Move
-from mini_katago.constants import EXPLORATION_CONSTANT, INFINITY
+from mini_katago.constants import (EXPLORATION_CONSTANT, INFINITY,
+                                   MAX_GAME_DEPTH, NUM_SIMULATIONS)
 from mini_katago.player import Player
 
-SIMULATIONS = 500
-MAX_DEPTH = 50
+# fmt: on
+
 
 black_player, white_player = Player("Black Player", -1), Player("White Player", 1)
+black_player.opponent, white_player.opponent = white_player, black_player
 board = Board(9, black_player, white_player)
+color = -1
 
 
 class Node:
@@ -24,7 +30,7 @@ class Node:
     def __init__(
         self,
         visits: int,
-        total_value: int,
+        total_wins: int,
         player_to_play: Player,
         parent: Self | None,
         move_from_parent: Move | None,
@@ -40,12 +46,12 @@ class Node:
             move_from_parent (Move | None): the parent move that leads to this node, root has None
         """
         self.visits = visits
-        self.total_wins = total_value
+        self.total_wins = total_wins
         self.player_to_play = player_to_play
         self.parent = parent
         self.move_from_parent = move_from_parent
-        self.untried_moves: list[Move]
-        self.children: dict[Move, Self]
+        self.untried_moves: list[Move] | None = []
+        self.children: dict[Move, Self] | None = {}
 
     def uct_score(self, parent_visits: int, C: float = EXPLORATION_CONSTANT) -> float:
         """
@@ -100,3 +106,103 @@ class Node:
                     best_move = move
             return best_move
         return None
+
+    def __repr__(self) -> str:
+        """
+        Return a developer-friendly message for debugging
+
+        Returns:
+            str: a developer friendly message
+        """
+        return f"visits: {self.visits}, total_wins: {self.total_wins}, player_to_player: {self.player_to_play}, parent: {self.parent}, move_from_parent: {self.move_from_parent}"
+
+
+def mcts(root_board: Board, root_player: Player) -> Move:
+    root = Node(
+        visits=0,
+        total_wins=0,
+        player_to_play=root_player,
+        parent=None,
+        move_from_parent=None,
+    )
+    root.untried_moves = root_board.get_legal_moves(root_player.get_color())
+
+    for _ in range(NUM_SIMULATIONS):
+        board = copy.deepcopy(root_board)
+        node = root
+        player = root_player
+
+        # 1) Selection
+        while not node.untried_moves and not board.is_terminate() and node.children:
+            temp_node = node.select_child()
+            if temp_node is None:
+                break
+            node = temp_node
+            board.place_move(node.move_from_parent.get_position(), player.get_color())  # type: ignore
+            player = player.opponent
+
+        # 2) Expansion (add 1 child)
+        if not board.is_terminate():
+            # Attempt to get legal moves if it not already exists
+            if not node.untried_moves or node.untried_moves is None:
+                node.untried_moves = board.get_legal_moves(player.get_color())
+
+            if node.untried_moves and node.untried_moves is not None:
+                move = random.choice(node.untried_moves)
+                node.untried_moves.remove(move)
+
+                board.place_move(move.get_position(), player.get_color())
+                child = Node(
+                    visits=0,
+                    total_wins=0,
+                    player_to_play=player.opponent,
+                    parent=node,
+                    move_from_parent=move,
+                )
+                player = player.opponent
+                child.untried_moves = board.get_legal_moves(player.get_color())
+                node.children[move] = child  # type: ignore
+                node = child
+
+        # 3) Simulation (rollout)
+        rollout_player = player
+        depth = 0
+        while not board.is_terminate() and depth < MAX_GAME_DEPTH:
+            moves = board.get_legal_moves(rollout_player.get_color())
+            if moves is None:
+                board.pass_move()
+                break
+
+            move = random.choice(moves)
+            board.place_move(move.get_position(), rollout_player.get_color())
+
+            rollout_player = rollout_player.opponent
+            depth += 1
+
+        # 4) Back-propagation
+        result = board.calculate_score()
+        while node is not None:
+            node.visits += 1
+            node_player_color = node.player_to_play.get_color()
+            if node_player_color == -1:
+                won = result[0] > result[1]
+            else:
+                won = result[1] > result[0]
+            node.total_wins += 1 if won else 0
+            node = node.parent  # type: ignore
+
+    best = root.select_child()
+    return best.move_from_parent  # type: ignore
+
+
+while not board.is_terminate():
+    row, col = map(int, input("Enter row and col to play: ").split())
+    board.place_move((row, col), color)
+    color *= -1
+    board.print_ascii_board()
+
+    move = mcts(board, white_player)
+    print(move)
+    board.place_move(move.get_position(), white_player.get_color())
+    color *= -1
+    board.print_ascii_board()
