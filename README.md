@@ -29,11 +29,13 @@ New features include:
 
 ### Week 3 (WIP)
 
-Implemented a basic pure Monte Carlo Go Simulation. It works by randomly choose legal position to play and calculate the win rate.
+Implemented a basic pure Monte Carlo Go Simulation and Tree Search. It works by randomly choose legal position to play and calculate the win rate.
 
 New features include:
 
 -   A basic pure Monte Carlo Go Simulation
+-   A basic Monte Carlo Tree Search
+-   A new Node class data structure
 
 ## File structure
 
@@ -66,13 +68,24 @@ mini-katago/
 
 To start developing this project locally. Run the following command:
 
+Install UV:
+
+```bash
+uv --version  # check if UV is already installed
+
+# If it is not installed
+curl -LsSf https://astral.sh/uv/install.sh | sh  # MacOS & Linux
+# or
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+Clone the repository and setup:
+
 ```bash
 git clone https://github.com/YianXie/Mini-KataGo  # Clone this repository
 cd Mini-KataGo
-python -m venv venv  # Create a Python virtual environment
-source venv/bin/activate  # Activate the virtual environment
-which pip  # (optional) confirm that you are using the correct pip
-pip install -r requirements.txt  # Install dependencies
+uv init  # initialize the virtual environment
+uv sync --dev  # install the dependencies
 ```
 
 Now you are ready to start developing. To see a quick demo, you may go the `main.py` and try a few different .sgf files or play your own.
@@ -98,3 +111,7 @@ pytest  # Run at root level. This would run all tests.
 ```
 
 To add more tests, simply add a new Python file in the `tests/` directory. Note that it must start with `test_xxx` or `xxx_test`
+
+## CI/CD
+
+This project uses GitHub Actions for continuous integration. The `ci.yml` workflow runs on every push and pull request, performing code quality checks including Ruff linting, Mypy type checking, isort import sorting validation, and pip-audit security scanning. The `tests.yml` workflow runs pytest tests on pushes to the main branch and all pull requests targeting main, ensuring that all tests pass before code is merged.
