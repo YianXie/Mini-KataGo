@@ -50,7 +50,7 @@ class Node:
         self.player_to_play = player_to_play
         self.parent = parent
         self.move_from_parent = move_from_parent
-        self.untried_moves: list[Move] | None = []
+        self.untried_moves: list[Move] | None = None
         self.children: dict[Move, Self] | None = {}
 
     def uct_score(self, parent_visits: int, C: float = EXPLORATION_CONSTANT) -> float:
@@ -138,16 +138,19 @@ def mcts(root_board: Board, root_player: Player) -> Move:
             if temp_node is None:
                 break
             node = temp_node
-            board.place_move(node.move_from_parent.get_position(), player.get_color())  # type: ignore
+            board.place_move(
+                node.move_from_parent.get_position(),  # type: ignore
+                node.player_to_play.get_color(),
+            )
             player = player.opponent
 
         # 2) Expansion (add 1 child)
         if not board.is_terminate():
             # Attempt to get legal moves if it not already exists
-            if not node.untried_moves or node.untried_moves is None:
+            if node.untried_moves is None:
                 node.untried_moves = board.get_legal_moves(player.get_color())
 
-            if node.untried_moves and node.untried_moves is not None:
+            if node.untried_moves:
                 move = random.choice(node.untried_moves)
                 node.untried_moves.remove(move)
 
@@ -169,9 +172,10 @@ def mcts(root_board: Board, root_player: Player) -> Move:
         depth = 0
         while not board.is_terminate() and depth < MAX_GAME_DEPTH:
             moves = board.get_legal_moves(rollout_player.get_color())
-            if moves is None:
+            if not moves:
                 board.pass_move()
-                break
+                rollout_player = rollout_player.opponent
+                continue
 
             move = random.choice(moves)
             board.place_move(move.get_position(), rollout_player.get_color())
@@ -180,18 +184,22 @@ def mcts(root_board: Board, root_player: Player) -> Move:
             depth += 1
 
         # 4) Back-propagation
-        result = board.calculate_score()
+        black_score, white_score = board.calculate_score()
         while node is not None:
             node.visits += 1
-            node_player_color = node.player_to_play.get_color()
-            if node_player_color == -1:
-                won = result[0] > result[1]
-            else:
-                won = result[1] > result[0]
-            node.total_wins += 1 if won else 0
+            # From the root player's perspective
+            root_won = (
+                (black_score > white_score)
+                if root_player.get_color() == -1
+                else (white_score > black_score)
+            )
+            node.total_wins += int(root_won)
             node = node.parent  # type: ignore
 
-    best = root.select_child()
+    best: Node = list(root.children.values())[0]  # type: ignore
+    for value in root.children.values():  # type: ignore
+        if value.visits > best.visits:
+            best = value
     return best.move_from_parent  # type: ignore
 
 

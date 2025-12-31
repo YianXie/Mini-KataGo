@@ -260,7 +260,7 @@ class Board:
                     visited.add(neighbor)
         return connected
 
-    def get_legal_moves(self, color: int) -> list[Move] | None:
+    def get_legal_moves(self, color: int) -> list[Move]:
         """
         Get all legal moves for a given player
 
@@ -279,7 +279,7 @@ class Board:
                 test_move = Move(move.row, move.col, color)  # create a temporary move
                 if self.move_is_valid(test_move):
                     moves.append(move)
-        return moves if moves else None
+        return moves
 
     def is_terminate(self) -> bool:
         """

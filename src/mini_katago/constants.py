@@ -10,7 +10,7 @@ EXPLORATION_CONSTANT = 1.5
 The 'C' value in MCTS
 """
 
-NUM_SIMULATIONS = 100
+NUM_SIMULATIONS = 1000
 """
 The amount of simulations to do for MCTS
 """
