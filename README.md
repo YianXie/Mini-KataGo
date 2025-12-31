@@ -39,6 +39,10 @@ New features include:
 
 ```
 mini-katago/
+├── .github/
+│   ├── workflows
+│       ├── ci.yml
+│       ├── tests.yml
 ├── src/                        # All Python files
 │   ├── mini_katago/            # Go related files
 │   │   │── __init__.py
@@ -49,12 +53,13 @@ mini-katago/
 │   │   │── minimax.py          # A simple depth-limited minimax algorithm for Go
 │   │   │── mcts.py             # A Monte Carlo Go Simulation file (also refer to as Monte Carlo Tree Search)
 ├── tests/                      # All unit-tests
-    ├── test_board_rules.py     # Test if board rules works correctly
-├── requirements.txt
-├── pyproject.toml
+│   ├── test_board_rules.py     # Test if board rules works correctly
 ├── .gitignore
 ├── LICENSE
-└── README.md
+├── Makefile
+├── pyproject.toml
+├── README.md
+└── uv.lock
 ```
 
 ## Development
