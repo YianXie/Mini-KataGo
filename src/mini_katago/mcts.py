@@ -16,12 +16,6 @@ from mini_katago.player import Player
 # fmt: on
 
 
-black_player, white_player = Player("Black Player", -1), Player("White Player", 1)
-black_player.opponent, white_player.opponent = white_player, black_player
-board = Board(9, black_player, white_player)
-color = -1
-
-
 class Node:
     """
     A node represents a game state (board position).
@@ -51,7 +45,7 @@ class Node:
         self.parent = parent
         self.move_from_parent = move_from_parent
         self.untried_moves: list[Move] | None = None
-        self.children: dict[Move, Self] | None = {}
+        self.children: dict[Move, Self] = {}
 
     def uct_score(self, parent_visits: int, C: float = EXPLORATION_CONSTANT) -> float:
         """
@@ -178,7 +172,7 @@ def semi_random_move(board: Board, legal_moves: list[Move]) -> Move:
     return weighted_choice(legal_moves, weights)
 
 
-def mcts(root_board: Board, root_player: Player) -> Move:
+def mcts(root_board: Board, root_player: Player) -> Move | None:
     root = Node(
         visits=0,
         total_wins=0,
@@ -195,7 +189,9 @@ def mcts(root_board: Board, root_player: Player) -> Move:
 
         # 1) Selection
         while (
-            not node.untried_moves and not root_board.is_terminate() and node.children
+            not node.untried_moves
+            and not root_board.is_terminate()
+            and len(node.children) > 0
         ):
             temp_node = node.select_child()
             if temp_node is None:
@@ -203,7 +199,7 @@ def mcts(root_board: Board, root_player: Player) -> Move:
             node = temp_node
             root_board.place_move(
                 node.move_from_parent.get_position(),  # type: ignore
-                node.player_to_play.get_color(),
+                player.get_color(),
             )
             player = player.opponent
             moves_made += 1
@@ -229,7 +225,7 @@ def mcts(root_board: Board, root_player: Player) -> Move:
                 )
                 player = player.opponent
                 child.untried_moves = root_board.get_legal_moves(player.get_color())
-                node.children[move] = child  # type: ignore
+                node.children[move] = child
                 node = child
 
         # 3) Simulation (rollout)
@@ -237,10 +233,10 @@ def mcts(root_board: Board, root_player: Player) -> Move:
         depth = 0
         while not root_board.is_terminate() and depth < MAX_GAME_DEPTH:
             moves = root_board.get_legal_moves(rollout_player.get_color())
-            moves_made += 1
             if not moves:
                 root_board.pass_move()
                 rollout_player = rollout_player.opponent
+                moves_made += 1
                 continue
 
             move = semi_random_move(root_board, moves)
@@ -248,6 +244,7 @@ def mcts(root_board: Board, root_player: Player) -> Move:
 
             rollout_player = rollout_player.opponent
             depth += 1
+            moves_made += 1
 
         # 4) Back-propagation
         black_score, white_score = root_board.calculate_score()
@@ -266,20 +263,31 @@ def mcts(root_board: Board, root_player: Player) -> Move:
         for _ in range(moves_made):
             root_board.undo()
 
-    best: Node = list[Node](root.children.values())[0]  # type: ignore
-    for value in root.children.values():  # type: ignore
-        if value.visits > best.visits:
-            best = value
-    return best.move_from_parent  # type: ignore
+    if len(root.children) == 0:
+        return None
+    best: Node = next(iter(root.children.values()))
+    for node in root.children.values():
+        if node.visits > best.visits:
+            best = node
+    return best.move_from_parent
 
 
-# while not board.is_terminate():
-row, col = map(int, input("Enter row and col to play: ").split())
-board.place_move((row, col), color)
-color *= -1
-board.print_ascii_board()
+black_player, white_player = Player("Black Player", -1), Player("White Player", 1)
+black_player.opponent, white_player.opponent = white_player, black_player
+board = Board(9, black_player, white_player)
+color = -1
 
-move = mcts(board, white_player)
-board.place_move(move.get_position(), white_player.get_color())
-color *= -1
-board.print_ascii_board()
+
+while not board.is_terminate():
+    row, col = map(int, input("Enter row and col to play: ").split())
+    board.place_move((row, col), color)
+    color *= -1
+    board.print_ascii_board()
+
+    move = mcts(board, white_player)
+    if move is not None:
+        board.place_move(move.get_position(), white_player.get_color())
+        color *= -1
+        board.print_ascii_board()
+    else:
+        print("No move found")
