@@ -2,7 +2,6 @@
 A pure Monte Carlo Tree Search algorithm for Go
 """
 
-import copy
 import math
 import random
 from typing import Self
@@ -128,33 +127,37 @@ def mcts(root_board: Board, root_player: Player) -> Move:
     root.untried_moves = root_board.get_legal_moves(root_player.get_color())
 
     for _ in range(NUM_SIMULATIONS):
-        board = copy.deepcopy(root_board)
+        moves_made = 0
         node = root
         player = root_player
 
         # 1) Selection
-        while not node.untried_moves and not board.is_terminate() and node.children:
+        while (
+            not node.untried_moves and not root_board.is_terminate() and node.children
+        ):
             temp_node = node.select_child()
             if temp_node is None:
                 break
             node = temp_node
-            board.place_move(
+            root_board.place_move(
                 node.move_from_parent.get_position(),  # type: ignore
                 node.player_to_play.get_color(),
             )
             player = player.opponent
+            moves_made += 1
 
         # 2) Expansion (add 1 child)
-        if not board.is_terminate():
+        if not root_board.is_terminate():
             # Attempt to get legal moves if it not already exists
             if node.untried_moves is None:
-                node.untried_moves = board.get_legal_moves(player.get_color())
+                node.untried_moves = root_board.get_legal_moves(player.get_color())
 
             if node.untried_moves:
                 move = random.choice(node.untried_moves)
                 node.untried_moves.remove(move)
+                moves_made += 1
 
-                board.place_move(move.get_position(), player.get_color())
+                root_board.place_move(move.get_position(), player.get_color())
                 child = Node(
                     visits=0,
                     total_wins=0,
@@ -163,28 +166,29 @@ def mcts(root_board: Board, root_player: Player) -> Move:
                     move_from_parent=move,
                 )
                 player = player.opponent
-                child.untried_moves = board.get_legal_moves(player.get_color())
+                child.untried_moves = root_board.get_legal_moves(player.get_color())
                 node.children[move] = child  # type: ignore
                 node = child
 
         # 3) Simulation (rollout)
         rollout_player = player
         depth = 0
-        while not board.is_terminate() and depth < MAX_GAME_DEPTH:
-            moves = board.get_legal_moves(rollout_player.get_color())
+        while not root_board.is_terminate() and depth < MAX_GAME_DEPTH:
+            moves = root_board.get_legal_moves(rollout_player.get_color())
             if not moves:
-                board.pass_move()
+                root_board.pass_move()
                 rollout_player = rollout_player.opponent
                 continue
 
             move = random.choice(moves)
-            board.place_move(move.get_position(), rollout_player.get_color())
+            root_board.place_move(move.get_position(), rollout_player.get_color())
+            moves_made += 1
 
             rollout_player = rollout_player.opponent
             depth += 1
 
         # 4) Back-propagation
-        black_score, white_score = board.calculate_score()
+        black_score, white_score = root_board.calculate_score()
         while node is not None:
             node.visits += 1
             # From the root player's perspective
@@ -196,21 +200,24 @@ def mcts(root_board: Board, root_player: Player) -> Move:
             node.total_wins += int(root_won)
             node = node.parent  # type: ignore
 
-    best: Node = list(root.children.values())[0]  # type: ignore
+        # 5) Restore the board
+        for _ in range(moves_made):
+            root_board.undo()
+
+    best: Node = list[Node](root.children.values())[0]  # type: ignore
     for value in root.children.values():  # type: ignore
         if value.visits > best.visits:
             best = value
     return best.move_from_parent  # type: ignore
 
 
-while not board.is_terminate():
-    row, col = map(int, input("Enter row and col to play: ").split())
-    board.place_move((row, col), color)
-    color *= -1
-    board.print_ascii_board()
+# while not board.is_terminate():
+row, col = map(int, input("Enter row and col to play: ").split())
+board.place_move((row, col), color)
+color *= -1
+board.print_ascii_board()
 
-    move = mcts(board, white_player)
-    print(move)
-    board.place_move(move.get_position(), white_player.get_color())
-    color *= -1
-    board.print_ascii_board()
+move = mcts(board, white_player)
+board.place_move(move.get_position(), white_player.get_color())
+color *= -1
+board.print_ascii_board()
