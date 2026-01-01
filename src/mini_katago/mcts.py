@@ -8,7 +8,8 @@ from typing import Self
 
 # fmt: off
 from mini_katago.board import Board, Move
-from mini_katago.constants import (EXPLORATION_CONSTANT, INFINITY,
+from mini_katago.constants import (ADJ_BOOST, CAPTURE_BOOST,
+                                   EXPLORATION_CONSTANT, INFINITY,
                                    MAX_GAME_DEPTH, NUM_SIMULATIONS)
 from mini_katago.player import Player
 
@@ -116,6 +117,67 @@ class Node:
         return f"visits: {self.visits}, total_wins: {self.total_wins}, player_to_player: {self.player_to_play}, parent: {self.parent}, move_from_parent: {self.move_from_parent}"
 
 
+def weighted_choice(moves: list[Move], weights: list[float]) -> Move:
+    """
+    Select a biased-random move based on the given weights and moves
+
+    Args:
+        moves (list[Move]): a list of legal moves
+        weights (list[float]): a list of weights corresponding to the list of moves
+
+    Returns:
+        Move: the selected move
+    """
+    return random.choices(moves, weights=weights, k=1)[0]
+
+
+def move_weight(
+    board: Board,
+    move: Move,
+    capture_boost: float = CAPTURE_BOOST,
+    adj_boost: float = ADJ_BOOST,
+) -> float:
+    """
+    Weight a move based on its capture count and whether it is connected to own stones
+
+    Args:
+        board (Board): the board to check the move on
+        move (Move): the move to check the weight of
+        capture_boost (float, optional): the boost for captures. Defaults to 6.0.
+        adj_boost (float, optional): the boost for adjacent stones. Defaults to 1.8.
+
+    Returns:
+        float: the weight of the move
+    """
+    weight = 1.0
+    captures = board.check_captures(move)
+    if captures:
+        weight *= len(captures) ** capture_boost
+
+    neighbors = board.get_neighbors(move)
+    for neighbor in neighbors:
+        if neighbor.get_color() == move.get_color():
+            weight *= adj_boost
+            break
+
+    return weight
+
+
+def semi_random_move(board: Board, legal_moves: list[Move]) -> Move:
+    """
+    Select a move semi-randomly based on the weights of the moves
+
+    Args:
+        board (Board): the board to check the move on
+        legal_moves (list[Move]): the legal moves to select from
+
+    Returns:
+        Move: the semi-randomly selected move
+    """
+    weights = [move_weight(board, move) for move in legal_moves]
+    return weighted_choice(legal_moves, weights)
+
+
 def mcts(root_board: Board, root_player: Player) -> Move:
     root = Node(
         visits=0,
@@ -175,14 +237,14 @@ def mcts(root_board: Board, root_player: Player) -> Move:
         depth = 0
         while not root_board.is_terminate() and depth < MAX_GAME_DEPTH:
             moves = root_board.get_legal_moves(rollout_player.get_color())
+            moves_made += 1
             if not moves:
                 root_board.pass_move()
                 rollout_player = rollout_player.opponent
                 continue
 
-            move = random.choice(moves)
+            move = semi_random_move(root_board, moves)
             root_board.place_move(move.get_position(), rollout_player.get_color())
-            moves_made += 1
 
             rollout_player = rollout_player.opponent
             depth += 1
