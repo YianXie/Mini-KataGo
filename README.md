@@ -49,11 +49,12 @@ mini-katago/
 │   ├── mini_katago/            # Go related files
 │   │   │── __init__.py
 │   │   │── board.py            # A file that represents the Go game board
+│   │   │── constants.py        # A file containing all the essential constants used in the project
 │   │   │── main.py             # A file for testing
+│   │   │── mcts.py             # A Monte Carlo Go Simulation file (also refer to as Monte Carlo Tree Search)
+│   │   │── minimax.py          # A simple depth-limited minimax algorithm for Go
 │   │   │── player.py           # A file representing the player
 │   │   │── rules.py            # A file that contains some basic rules for Go
-│   │   │── minimax.py          # A simple depth-limited minimax algorithm for Go
-│   │   │── mcts.py             # A Monte Carlo Go Simulation file (also refer to as Monte Carlo Tree Search)
 ├── tests/                      # All unit-tests
 │   ├── test_board_rules.py     # Test if board rules works correctly
 ├── .gitignore
@@ -76,7 +77,7 @@ uv --version  # check if UV is already installed
 # If it is not installed
 curl -LsSf https://astral.sh/uv/install.sh | sh  # MacOS & Linux
 # or
-powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"  # Windows
 ```
 
 Clone the repository and setup:
@@ -99,11 +100,8 @@ This project contains some tests that you can run while developing to make sure 
 To run tests:
 
 ```bash
-pip install -r requirements.txt  # Install dependencies
-```
-
-```bash
-pip install -e .  # IMPORTANT: run at root level, otherwise Pytest would not work
+uv init  # initialize the virtual environment if you haven't already done it
+uv sync --dev  # install all the dependencies
 ```
 
 ```bash
