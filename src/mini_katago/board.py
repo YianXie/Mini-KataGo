@@ -609,3 +609,8 @@ class Board:
 
         ax.set_aspect("equal", adjustable="box")
         plt.show()
+
+    def __eq__(self, other: object, /) -> bool:
+        if not isinstance(other, Board):
+            return NotImplemented
+        return self.__dict__ == other.__dict__

@@ -83,24 +83,6 @@ class Node:
             return best_node
         return None
 
-    def select_move(self) -> Move | None:
-        """
-        Return the child move with the highest UCT score
-
-        Returns:
-            Move | None: the child move with the highest UCT score, or None if node has no children
-        """
-        best_score = -INFINITY
-        best_move: Move | None = None
-        if self.children:
-            for move, node in self.children.items():
-                score = node.uct_score(node.parent.visits)  # type: ignore
-                if score > best_score:
-                    best_score = score
-                    best_move = move
-            return best_move
-        return None
-
     def __repr__(self) -> str:
         """
         Return a developer-friendly message for debugging
@@ -173,6 +155,16 @@ def semi_random_move(board: Board, legal_moves: list[Move]) -> Move:
 
 
 def mcts(root_board: Board, root_player: Player) -> Move | None:
+    """
+    A Monte Carlo Tree Search algorithm to find the best move for the root player
+
+    Args:
+        root_board (Board): the board to start the search from
+        root_player (Player): the player to start the search from
+
+    Returns:
+        Move | None: the best move for the root player
+    """
     root = Node(
         visits=0,
         total_wins=0,
@@ -201,6 +193,7 @@ def mcts(root_board: Board, root_player: Player) -> Move | None:
                 node.move_from_parent.get_position(),  # type: ignore
                 player.get_color(),
             )
+            # print(f"Selected move: {node.move_from_parent}")
             player = player.opponent
             moves_made += 1
 
